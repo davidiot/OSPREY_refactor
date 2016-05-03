@@ -257,18 +257,12 @@ public class ConfigFileParser {
 		// rotamer library file will be matched to templates
 		boolean dunbrackRots = params.getBool("UseDunbrackRotamers", false);
 		// PGC 2015: Always load the Lovell Rotamer Library.
-		resTemplates.loadRotamerLibrary(params.getValue("ROTFILE", "LovellRotamer.dat"), false);// see
-																								// below;
-																								// also
-																								// gRotFile0
-																								// etc
+		resTemplates.loadRotamerLibrary(params.getValue("ROTFILE", "LovellRotamer.dat"), false);
+		// see below; also gRotFile0 etc
 		resTemplates.loadRotamerLibrary(params.getValue("RNAROTFILE", "RNAChiRotamers.dat"), false); // RNA
 		if (dunbrackRots) { // Use the dunbrack rotamer library
-			resTemplates.loadRotamerLibrary(params.getValue("DUNBRACKROTFILE", "ALL.bbdep.rotamers.lib"), true);// see
-																												// below;
-																												// also
-																												// gRotFile0
-																												// etc
+			resTemplates.loadRotamerLibrary(params.getValue("DUNBRACKROTFILE", "ALL.bbdep.rotamers.lib"), true);
+			// see below; also gRotFile0 etc
 		}
 
 		EnvironmentVars.resTemplates = resTemplates;
@@ -339,10 +333,8 @@ public class ConfigFileParser {
 		// return names of residue template files
 
 		// template file names are currently fixed
-		String aaFilename = null, aaNTFilename = null, aaCTFilename = null, grFilename = null;
-		String nucFilename = null;
-		String nuc5pFilename = null;
-		String nuc3pFilename = null;
+		String aaFilename = null, aaNTFilename = null, aaCTFilename = null, grFilename = null, nucFilename = null,
+				nuc5pFilename = null, nuc3pFilename = null;
 
 		switch (forcefld) {
 		case AMBER:
@@ -382,9 +374,7 @@ public class ConfigFileParser {
 
 		boolean rna = true; // use for debug later?
 		if (rna && forcefld == ForcefieldParams.FORCEFIELD.AMBER) {
-			return new String[] { aaFilename, aaNTFilename, aaCTFilename, nucFilename, nuc5pFilename, nuc3pFilename };
-			// grFiles contain duplicate templates. should be included in array,
-			// but left out for now.
+			return new String[] { aaFilename, aaNTFilename, aaCTFilename, nucFilename, nuc5pFilename, nuc3pFilename, grFilename };
 		} else
 			return new String[] { aaFilename, aaNTFilename, aaCTFilename, grFilename };
 	}

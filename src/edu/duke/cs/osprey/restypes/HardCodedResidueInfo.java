@@ -38,6 +38,7 @@ public class HardCodedResidueInfo {
 	public static String[] possibleNABBAtoms = new String[] { "P", "OP1", "OP2", "O5'", "C5'", "H5'", "H5''", "C4'",
 			"H4'", "C3'", "H3'", "O3'", "HO3'", "O2'", "HO2'", "C2'", "H2'", "C1'", "O4'", "HO5'" };
 	// Nucleic Acid BB atoms. Note that O2' is unique to RNA
+	// H1' is moved with the "sidechain" in the same way as HA in amino acids.
 
 	public static LinkedHashMap<String, String> three2one = null;
 
@@ -79,9 +80,11 @@ public class HardCodedResidueInfo {
 	// Here's some stuff we need to mutate amino acid protein residues
 	public static boolean canMutateTo(ResidueTemplate templ) {
 		// do we currently support mutations to the given amino-acid type?
-		if (templ.templateRes.coords == null)
+		if (templ.templateRes.coords == null) {
 			return false;
-		return hasAminoAcidBB(templ.templateRes) || hasNucleicAcidBB(templ.templateRes);
+		} else {
+			return hasAminoAcidBB(templ.templateRes) || hasNucleicAcidBB(templ.templateRes);
+		}
 
 		// going to add NA functionality
 
@@ -176,7 +179,6 @@ public class HardCodedResidueInfo {
 			int C = template.templateRes.getAtomIndexByName("C");
 			return new int[] { CA, N, C };
 		} else if (hasNucleicAcidBB(template.templateRes)) {
-			// going to align using C4' for now
 			int O4 = template.templateRes.getAtomIndexByName("O4'");
 			int C1 = template.templateRes.getAtomIndexByName("C1'");
 			int C2 = template.templateRes.getAtomIndexByName("C2'");
@@ -323,7 +325,7 @@ public class HardCodedResidueInfo {
 		case PHOSPHODIESTER:
 			index1 = res1.getAtomIndexByName("O3'");
 			index2 = res2.getAtomIndexByName("P");
-			if (index2 == -1 || !(hasNucleicAcidBB(res1) && hasNucleicAcidBB(res2))) {
+			if (!(hasNucleicAcidBB(res1) && hasNucleicAcidBB(res2))) {
 				return false;
 			}
 			break;
@@ -336,6 +338,10 @@ public class HardCodedResidueInfo {
 			break;
 		default:
 			throw new RuntimeException("Bond type not recognized.");
+		}
+		if (index1 == -1 || index2 == -1) {
+			return false;
+			// atoms not found.
 		}
 		// Get distance between these atoms
 		double dist = VectorAlgebra.distance(res1.coords, index1, res2.coords, index2);
