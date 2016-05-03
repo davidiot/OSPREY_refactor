@@ -6,7 +6,9 @@ import edu.duke.cs.osprey.control.EnvironmentVars;
 import edu.duke.cs.osprey.dof.FreeDihedral;
 import edu.duke.cs.osprey.dof.ResidueTypeDOF;
 import edu.duke.cs.osprey.dof.deeper.BBType;
+import edu.duke.cs.osprey.dof.deeper.GenChi1Calc;
 import edu.duke.cs.osprey.dof.deeper.ResBBState;
+import edu.duke.cs.osprey.dof.deeper.SidechainIdealizer;
 import edu.duke.cs.osprey.dof.deeper.perts.Backrub;
 import edu.duke.cs.osprey.dof.deeper.perts.PartialStructureSwitch;
 import edu.duke.cs.osprey.dof.deeper.perts.RNArub;
@@ -57,7 +59,7 @@ public class RNATestSuite {
 		Molecule m = PDBFileReader.readPDBFile("354dH.pdb");
 		ArrayList<Residue> affected = new ArrayList<Residue>();
 		affected.add(m.residues.get(0));
-		System.out.println(m.residues.get(0).fullName); //RC3 A  70 
+		System.out.println(m.residues.get(0).fullName); // RC3 A 70
 		RNArub rub = new RNArub(affected);
 		rub.doPerturbationMotion(10);
 		Molecule m2 = PDBFileReader.readPDBFile("354dH.pdb");
@@ -88,8 +90,18 @@ public class RNATestSuite {
 		Molecule m = PDBFileReader.readPDBFile("354dH.pdb");
 		ArrayList<String> altConfPDBFiles = new ArrayList<String>();
 		altConfPDBFiles.add("1cslH.renum.pdb");
+		ArrayList<Double> dependentGenChi1 = new ArrayList<>();
+		for (Residue res : m.residues) {
+			dependentGenChi1.add(GenChi1Calc.getGenChi1(res));
+			// record gen chi1 so we can restore it later
+		}
 		PartialStructureSwitch switcheroo = new PartialStructureSwitch(m.residues, altConfPDBFiles);
 		switcheroo.doPerturbationMotion(1);
+		for (int resNum = 0; resNum < m.residues.size(); resNum++) {
+			Residue res = m.residues.get(resNum);
+			SidechainIdealizer.idealizeSidechain(res);
+			GenChi1Calc.setGenChi1(res, dependentGenChi1.get(resNum));
+		}
 		PDBFileWriter.writePDBFile(m, "testResults/354dHswitch.pdb");
 	}
 
@@ -104,6 +116,7 @@ public class RNATestSuite {
 			double chi1Measured = Protractor.measureDihedral(new double[][] { C5, C4, C3, O3 });
 
 			System.out.println(res.fullName + ": " + chi1Measured);
+			System.out.println(res.template.name);
 		}
 	}
 
