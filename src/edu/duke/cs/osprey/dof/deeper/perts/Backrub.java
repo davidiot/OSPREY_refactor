@@ -28,6 +28,11 @@ public class Backrub extends Perturbation {
 	public Backrub(ArrayList<Residue> resDirectlyAffected) {
 		super(resDirectlyAffected);
 	}
+	
+	public Backrub(ArrayList<Residue> resDirectlyAffected, double scalingFactor) {
+		super(resDirectlyAffected);
+		thetaSmallScale = scalingFactor;
+	}
 
 	@Override
 	public boolean doPerturbationMotion(double paramVal) {
