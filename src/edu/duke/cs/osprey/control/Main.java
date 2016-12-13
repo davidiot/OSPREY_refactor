@@ -9,6 +9,7 @@ import cern.jet.math.Functions;
 import edu.duke.cs.osprey.energy.MultiTermEnergyFunction;
 import edu.duke.cs.osprey.minimization.CCDMinimizer;
 import edu.duke.cs.osprey.minimization.MolecEObjFunction;
+import edu.duke.cs.osprey.tests.RNAExperimentalTestSuite;
 import edu.duke.cs.osprey.tests.RNATestSuite;
 import edu.duke.cs.osprey.tests.UnitTestSuite;
 import edu.duke.cs.osprey.tools.ObjectIO;
@@ -67,8 +68,8 @@ public class Main {
 			// ksc.calcKStarScores();
 		} else if (command.equalsIgnoreCase("RunTests")) {
 			//UnitTestSuite.runAllTests();
-			RNATestSuite.runAllTests();
-			
+			//RNATestSuite.runAllTests();
+			RNAExperimentalTestSuite.runAllTests();
 		} else if (command.equalsIgnoreCase("doCOMETS")) {
 			COMETSDoer cd = new COMETSDoer(args);
 			cd.calcBestSequences();

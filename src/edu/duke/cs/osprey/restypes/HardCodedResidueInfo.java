@@ -7,6 +7,7 @@ package edu.duke.cs.osprey.restypes;
 import edu.duke.cs.osprey.structure.Atom;
 import edu.duke.cs.osprey.structure.Molecule;
 import edu.duke.cs.osprey.structure.Residue;
+import edu.duke.cs.osprey.tools.Protractor;
 import edu.duke.cs.osprey.tools.VectorAlgebra;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -141,7 +142,7 @@ public class HardCodedResidueInfo {
 		}
 		return null;
 	}
-	
+
 	public static boolean isPyrimidine(String resName) {
 		return resName.equalsIgnoreCase("ru3") || resName.equalsIgnoreCase("ru2") || resName.equalsIgnoreCase("rt3")
 				|| resName.equalsIgnoreCase("rt2") || resName.equalsIgnoreCase("rc3")
@@ -152,7 +153,7 @@ public class HardCodedResidueInfo {
 		return resName.equalsIgnoreCase("ra3") || resName.equalsIgnoreCase("ra2") || resName.equalsIgnoreCase("rg3")
 				|| resName.equalsIgnoreCase("rg2");
 	}
-	
+
 	public static boolean isNAPivot(Atom at) {
 		// Is the atom next to the C1' carbon? Note that this method assumes
 		// that the atom is not part of the NA backbone. This should return N1
@@ -167,7 +168,7 @@ public class HardCodedResidueInfo {
 		}
 		return false;
 	}
-	
+
 	public static int[][] findMutAlignmentAtoms(ResidueTemplate template1, ResidueTemplate template2) {
 		/*
 		 * List indices of atoms in the two residue templates that can be
@@ -203,6 +204,15 @@ public class HardCodedResidueInfo {
 		}
 
 		return new int[][] { mutAtoms1, mutAtoms2 };
+	}
+
+	private static double measureDeltaAngle(Residue res) {
+		double C5[] = res.getCoordsByAtomName("C5'");
+		double C4[] = res.getCoordsByAtomName("C4'");
+		double C3[] = res.getCoordsByAtomName("C3'");
+		double O3[] = res.getCoordsByAtomName("O3'");
+
+		return Protractor.measureDihedral(new double[][] { C5, C4, C3, O3 });
 	}
 
 	private static int[] getTemplateMutAtoms(ResidueTemplate template) {

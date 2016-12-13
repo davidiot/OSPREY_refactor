@@ -11,7 +11,7 @@ import edu.duke.cs.osprey.dof.deeper.ResBBState;
 import edu.duke.cs.osprey.dof.deeper.SidechainIdealizer;
 import edu.duke.cs.osprey.dof.deeper.perts.Backrub;
 import edu.duke.cs.osprey.dof.deeper.perts.PartialStructureSwitch;
-import edu.duke.cs.osprey.dof.deeper.perts.RNArub;
+import edu.duke.cs.osprey.dof.deeper.perts.RNABackrub;
 import edu.duke.cs.osprey.energy.EnergyFunction;
 import edu.duke.cs.osprey.restypes.HardCodedResidueInfo;
 import edu.duke.cs.osprey.structure.Atom;
@@ -60,7 +60,7 @@ public class RNATestSuite {
 		ArrayList<Residue> affected = new ArrayList<Residue>();
 		affected.add(m.residues.get(0));
 		System.out.println(m.residues.get(0).fullName); // RC3 A 70
-		RNArub rub = new RNArub(affected);
+		RNABackrub rub = new RNABackrub(affected);
 		rub.doPerturbationMotion(10);
 		Molecule m2 = PDBFileReader.readPDBFile("354dH.pdb");
 		affected.get(0).indexInMolecule = 10;
@@ -69,7 +69,7 @@ public class RNATestSuite {
 		Molecule m3 = PDBFileReader.readPDBFile("354dH.pdb");
 		affected = new ArrayList<Residue>();
 		affected.add(m3.residues.get(0));
-		rub = new RNArub(affected);
+		rub = new RNABackrub(affected);
 		rub.doPerturbationMotion(-10);
 		affected.get(0).indexInMolecule = 15;
 		affected.get(0).fullName = "RC3 C  15 ";

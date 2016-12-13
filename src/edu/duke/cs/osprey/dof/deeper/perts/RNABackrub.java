@@ -6,12 +6,23 @@ import edu.duke.cs.osprey.restypes.HardCodedResidueInfo;
 import edu.duke.cs.osprey.structure.Residue;
 import edu.duke.cs.osprey.tools.RigidBodyMotion;
 
-public class RNArub extends Backrub {
+public class RNABackrub extends Backrub {
 
-	public RNArub(ArrayList<Residue> resDirectlyAffected) {
+	
+	
+	public RNABackrub(ArrayList<Residue> resDirectlyAffected) {
 		super(resDirectlyAffected);
 	}
 
+	
+	/* 
+	 * for the purposes of finding an optimal scaling factor
+	 */
+	public RNABackrub(ArrayList<Residue> resDirectlyAffected, double scalingFactor) {
+		super(resDirectlyAffected);
+		thetaSmallScale = scalingFactor;
+	}
+	
 	@Override
 	public boolean doPerturbationMotion(double paramVal) {
 
@@ -66,5 +77,4 @@ public class RNArub extends Backrub {
 		Residue res = resDirectlyAffected.get(0);
 		return res.getCoordsByAtomName("O4'");
 	}
-
 }

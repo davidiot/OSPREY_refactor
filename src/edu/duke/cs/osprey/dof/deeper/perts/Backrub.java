@@ -21,7 +21,7 @@ import java.util.ArrayList;
  */
 public class Backrub extends Perturbation {
 
-	final static double thetaSmallScale = 0.7f; // the scaling factor for the
+	static double thetaSmallScale = 0.7f; // the scaling factor for the
 												// rotation angles for the small
 												// rotations
 
