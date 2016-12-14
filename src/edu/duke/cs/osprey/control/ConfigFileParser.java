@@ -472,13 +472,11 @@ public class ConfigFileParser {
         
         boolean rna = true; // DZ: for debugging; set this to false if you are not using RNA.
         if (rna && forcefld == ForcefieldParams.FORCEFIELD.AMBER) {
-        	return new String[] { aaFilename, aaNTFilename, aaCTFilename, nucFilename, nuc5pFilename, nuc3pFilename };
-        	// grFiles contain duplicate templates. should be included in array,
-        	// but left out for now.
-        	} else return new String[] {
-            aaFilename, aaNTFilename, aaCTFilename, grFilename
-        };
-    }
+			return new String[] { aaFilename, aaNTFilename, aaCTFilename, nucFilename, nuc5pFilename, nuc3pFilename, grFilename };
+		} else
+			return new String[] { aaFilename, aaNTFilename, aaCTFilename, grFilename };
+	}
+
     // Getter function for the params.
     public ParamSet getParams(){
     	return this.params;
