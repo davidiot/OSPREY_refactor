@@ -6,9 +6,9 @@ import edu.duke.cs.osprey.restypes.HardCodedResidueInfo;
 import edu.duke.cs.osprey.structure.Residue;
 import edu.duke.cs.osprey.tools.RigidBodyMotion;
 
-public class RNArub extends Backrub {
+public class RNABackrub extends Backrub {
 
-	public RNArub(ArrayList<Residue> resDirectlyAffected) {
+	public RNABackrub(ArrayList<Residue> resDirectlyAffected) {
 		super(resDirectlyAffected);
 	}
 

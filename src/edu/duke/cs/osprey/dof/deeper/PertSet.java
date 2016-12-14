@@ -11,7 +11,7 @@ import edu.duke.cs.osprey.dof.deeper.perts.Shear;
 import edu.duke.cs.osprey.dof.deeper.perts.Backrub;
 import edu.duke.cs.osprey.dof.deeper.perts.Perturbation;
 import edu.duke.cs.osprey.dof.deeper.perts.PerturbationBlock;
-import edu.duke.cs.osprey.dof.deeper.perts.RNArub;
+import edu.duke.cs.osprey.dof.deeper.perts.RNABackrub;
 import edu.duke.cs.osprey.structure.Molecule;
 import edu.duke.cs.osprey.structure.Residue;
 import edu.duke.cs.osprey.tools.StringParsing;
@@ -319,7 +319,7 @@ public class PertSet {
 			if (type.equalsIgnoreCase("BACKRUB"))
 				pert = new Backrub(directlyAffectedResidues);
 			else if (type.equalsIgnoreCase("RNARUB"))
-				pert = new RNArub(directlyAffectedResidues);
+				pert = new RNABackrub(directlyAffectedResidues);
 			else if (type.equalsIgnoreCase("SHEAR"))
 				pert = new Shear(directlyAffectedResidues);
 			else if (type.equalsIgnoreCase("LOOP CLOSURE ADJUSTMENT"))
