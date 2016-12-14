@@ -155,6 +155,9 @@ public class HardCodedResidueInfo {
 		 * 
 		 * The alignment will use RigidBodyMotion.superimposingMotion, which
 		 * prioritizes alignment of earlier atoms so order matters
+		 * 
+		 * DZ: Now recognizes RNA as well.
+		 * 
 		 */
 
 		int mutAtoms1[] = getTemplateMutAtoms(template1);
@@ -179,11 +182,19 @@ public class HardCodedResidueInfo {
 
 	private static int[] getTemplateMutAtoms(ResidueTemplate template) {
 		// Get atoms to use for alignment
-		int N = template.templateRes.getAtomIndexByName("N");
-		int CA = template.templateRes.getAtomIndexByName("CA");
-		int C = template.templateRes.getAtomIndexByName("C");
-
-		return new int[] { CA, N, C };
+		if (hasAminoAcidBB(template.templateRes)) {
+			int N = template.templateRes.getAtomIndexByName("N");
+			int CA = template.templateRes.getAtomIndexByName("CA");
+			int C = template.templateRes.getAtomIndexByName("C");
+			return new int[] { CA, N, C };
+		} else if (hasNucleicAcidBB(template.templateRes)) {
+			// going to align using C4' for now
+			int O4 = template.templateRes.getAtomIndexByName("O4'");
+			int C1 = template.templateRes.getAtomIndexByName("C1'");
+			int C2 = template.templateRes.getAtomIndexByName("C2'");
+			return new int[] { C1, O4, C2 };
+		}
+		return new int[] { -1 };
 	}
 
 	// If mutating to or from PRO need to make sure CD is aligned to H (its
@@ -216,19 +227,19 @@ public class HardCodedResidueInfo {
 	// this version marks all the inter-residue bonds in a molecule
 	public static void markInterResBonds(Molecule molec) {
 
-		// first, peptide bonds. Must be between consecutive residues
+		// first, peptide and phosphodiester bonds. Must be between consecutive
+		// residues
 		for (int resNum = 0; resNum < molec.residues.size() - 1; resNum++) {
 			Residue res1 = molec.residues.get(resNum);
 			Residue res2 = molec.residues.get(resNum + 1);
 			if (!tryToMakeBond(res1, res2, InterResBondType.PEPTIDE)) {
 				// DZ: only try to make a phosphodiester bond if the peptide
-				// bond
-				// failed.
+				// bond failed.
 				tryToMakeBond(res1, res2, InterResBondType.PHOSPHODIESTER);
 			}
 		}
 
-		// there could also be disulfide bonds. Look for any cysteins that are
+		// there could also be disulfide bonds. Look for any cysteines that are
 		// close enough
 		for (Residue res1 : molec.residues) {
 			if (res1.fullName.startsWith("CYX")) {
