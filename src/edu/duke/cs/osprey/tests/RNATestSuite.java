@@ -23,14 +23,14 @@ import edu.duke.cs.osprey.tools.Protractor;
 
 public class RNATestSuite {
 	public static void runAllTests() {
-		// test1cslHEnergy();
-		// testMutation();
-		// testDihedral();
+		test1cslHEnergy();
+		testMutation();
+		testDihedral();
 		testProteinSwitch();
 		testRNASwitch();
 		testBackrub();
 		testRNArub();
-		// measureAngles();
+		measureAngles();
 	}
 
 	public static void testBackrub() {
