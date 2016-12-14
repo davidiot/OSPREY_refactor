@@ -430,6 +430,8 @@ public class ConfigFileParser {
         
         //template file names are currently fixed
         String aaFilename=null, aaNTFilename=null, aaCTFilename=null, grFilename=null;
+        // DZ: Template files for RNA support
+        String nucFilename = null, nuc5pFilename = null, nuc3pFilename = null;
         
         switch(forcefld){
                 case AMBER:
@@ -438,6 +440,10 @@ public class ConfigFileParser {
                         aaNTFilename =  "all_aminont94.in";
                         aaCTFilename =  "all_aminoct94.in";
                         grFilename = "all_nuc94_and_gr.in";
+                        // DZ: Note that RNA files are currently only supported for the AMBER force field.
+                        nucFilename = "all_rna.in";
+                        nuc5pFilename = "all_rna5p.in";
+                        nuc3pFilename = "all_rna3p.in";
                         break;
                 case CHARMM22:
                         //KER: This if for using the charmm22 parameters:
@@ -464,7 +470,12 @@ public class ConfigFileParser {
                         System.exit(0);
         }
         
-        return new String[] {
+        boolean rna = true; // DZ: for debugging; set this to false if you are not using RNA.
+        if (rna && forcefld == ForcefieldParams.FORCEFIELD.AMBER) {
+        	return new String[] { aaFilename, aaNTFilename, aaCTFilename, nucFilename, nuc5pFilename, nuc3pFilename };
+        	// grFiles contain duplicate templates. should be included in array,
+        	// but left out for now.
+        	} else return new String[] {
             aaFilename, aaNTFilename, aaCTFilename, grFilename
         };
     }
