@@ -169,7 +169,7 @@ public class SidechainIdealizer {
             }
         }
 
-        for(String name2 : HardCodedResidueInfo.possibleBBAtoms){
+        for(String name2 : HardCodedResidueInfo.possibleAABBAtoms){
             if(name2.equalsIgnoreCase(atomName)){
                 return false;
             }
