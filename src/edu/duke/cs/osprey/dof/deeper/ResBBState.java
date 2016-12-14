@@ -38,7 +38,7 @@ public class ResBBState implements Serializable {
                 
         for(Atom at : res.atoms){
             boolean isBBAtom = false;
-            for(String BBAtomName : HardCodedResidueInfo.possibleBBAtoms){
+            for(String BBAtomName : HardCodedResidueInfo.possibleAABBAtoms){
                 if(at.name.equalsIgnoreCase(BBAtomName)){
                     isBBAtom = true;
                     break;

@@ -107,7 +107,7 @@ public class PartialStructureSwitch extends Perturbation {
                 return true;
         }
         
-        for(String BBName : HardCodedResidueInfo.possibleBBAtoms){
+        for(String BBName : HardCodedResidueInfo.possibleAABBAtoms){
             if(atomName.equalsIgnoreCase(BBName))
                 return true;
         }
