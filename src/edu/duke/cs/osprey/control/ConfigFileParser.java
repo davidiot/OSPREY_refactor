@@ -374,11 +374,15 @@ public class ConfigFileParser {
         //these will be matched to templates
         resTemplates.loadTemplateCoords("all_amino_coords.in");
         
+        // DZ: RNA coordinates
+        resTemplates.loadTemplateCoords("all_rna_coords.in");
+        
         //load rotamer libraries; the names of residues as they appear in the rotamer library file will be matched to templates
         boolean dunbrackRots = params.getBool("UseDunbrackRotamers");
         // PGC 2015: Always load the Lovell Rotamer Library.
     	
-        resTemplates.loadRotamerLibrary(params.getValue("RNAROTFILE", "RNAChiRotamers.dat"), false); // DZ: RNA Rotamer Library
+     // DZ: RNA Rotamer Library
+        resTemplates.loadRotamerLibrary(params.getValue("RNAROTFILE", "RNAChiRotamers.dat"), false);
         
         resTemplates.loadRotamerLibrary(params.getValue("ROTFILE"), false);//see below; also gRotFile0 etc
         if(dunbrackRots){ // Use the dunbrack rotamer library
