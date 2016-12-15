@@ -147,6 +147,26 @@ public class HardCodedResidueInfo {
 
 		return ans;
 	}
+	
+	// DZ: Get the key coordinates for a residue with a backbone.
+	// These coordinates are used to pivot the sidechain during sidechain idealization  
+	// They are analogous to the nitrogen, alpha carbon, and beta carbon in amino acids.
+	public static double[][] getKeyCoords(Residue res) {
+		double[] NCoords, CACoords, CBCoords, CCoords;
+		if (hasNucleicAcidBB(res)) {
+			// DZ: analogous positions in nucleic acids
+			NCoords = res.getCoordsByAtomName("O4'");
+			CACoords = res.getCoordsByAtomName("C1'");
+			CBCoords = findPivotCoord(res);
+			CCoords = res.getCoordsByAtomName("C2'");
+		} else {
+			NCoords = res.getCoordsByAtomName("N");
+			CACoords = res.getCoordsByAtomName("CA");
+			CBCoords = res.getCoordsByAtomName("CB");
+			CCoords = res.getCoordsByAtomName("C");
+		}
+		return new double[][] { NCoords, CACoords, CBCoords, CCoords };
+	}
 
 	public static double[] findPivotCoord(Residue res) {
 		for (Atom at : res.atoms) {
@@ -170,8 +190,8 @@ public class HardCodedResidueInfo {
 
 	public static boolean isNAPivot(Atom at) {
 		// Is the atom next to the C1' carbon? Note that this method assumes
-		// that the atom is not part of the NA backbone. This should return N1
-		// for purines and N9 for pyrimidines
+		// that the atom is not part of the NA backbone. This should return true
+		// for N1 for pyrimidines and N9 for purines
 		if (at.name.equalsIgnoreCase("H1'") || at.name.equalsIgnoreCase("C2'") || at.name.equalsIgnoreCase("O4'")) {
 			return false;
 		}
