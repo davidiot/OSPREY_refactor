@@ -41,15 +41,15 @@ public class ResBBState implements Serializable {
 		// First, scan for NA backbone atoms, because some AA backbone atoms
 		// have the same name as NA base atoms and this could lead to problems.
 		// Thus, we want to check for NA residues first.
-		type = BBType.AA;
+		type = BBType.AMINO_ACID;
 		for (Atom at : res.atoms) {
 			for (String BBAtomName : HardCodedResidueInfo.possibleNABBAtoms) {
 				if (at.name.equalsIgnoreCase(BBAtomName)) {
-					type = BBType.NA;
+					type = BBType.NUCLEIC_ACID;
 					break;
 				}
 			}
-			if (type == BBType.NA) {
+			if (type == BBType.NUCLEIC_ACID) {
 				break;
 			}
 		}
@@ -57,14 +57,14 @@ public class ResBBState implements Serializable {
 		for (Atom at : res.atoms) {
 			boolean isBBAtom = false;
 
-			if (type == BBType.AA) {
+			if (type == BBType.AMINO_ACID) {
 				for (String BBAtomName : HardCodedResidueInfo.possibleAABBAtoms) {
 					if (at.name.equalsIgnoreCase(BBAtomName)) {
 						isBBAtom = true;
 						break;
 					}
 				}
-			} else if (type == BBType.NA) {
+			} else if (type == BBType.NUCLEIC_ACID) {
 				for (String BBAtomName : HardCodedResidueInfo.possibleNABBAtoms) {
 					if (at.name.equalsIgnoreCase(BBAtomName)) {
 						isBBAtom = true;
@@ -134,7 +134,7 @@ public class ResBBState implements Serializable {
         //gly HA's can be placed exactly by sidechain idealization, so don't worry about them
 		if (CBCoord != null) {
 			double[] resCBCoord = null;
-			if (type == BBType.AA) {
+			if (type == BBType.AMINO_ACID) {
 				resCBCoord = res.getCoordsByAtomName("CB");
 			} else {
 				for (Atom at : res.atoms) {
@@ -147,7 +147,7 @@ public class ResBBState implements Serializable {
 			if (resCBCoord != null) {
 				double[] resCACoord;
 				double[] CACoord;
-				if (type == BBType.AA) {
+				if (type == BBType.AMINO_ACID) {
 					resCACoord = res.getCoordsByAtomName("CA");
 					CACoord = coords.get("CA");
 				} else {
