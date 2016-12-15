@@ -34,11 +34,13 @@ public class HardCodedResidueInfo {
 	// perturbations.
 	// We'll move HA with the sidechain, so it's not included here.
 
-	public static Set<String> possibleBBAtomsLookup;
+	public static Set<String> possibleAABBAtomsLookup; // DZ: for O(1) lookup
+	public static Set<String> possibleNABBAtomsLookup; // DZ: for O(1) lookup
 
 	public static String[] possibleNABBAtoms = new String[] { "P", "OP1", "OP2", "O5'", "C5'", "H5'", "H5''", "C4'",
 			"H4'", "C3'", "H3'", "O3'", "HO3'", "O2'", "HO2'", "C2'", "H2'", "C1'", "O4'", "HO5'" };
 	// Nucleic Acid BB atoms. Note that O2' is unique to RNA
+	// H1' is moved with the "sidechain" in the same way as HA in amino acids.
 
 	public static LinkedHashMap<String, String> three2one = null;
 	public static LinkedHashMap<String, String> one2three = null;// reverse
@@ -51,9 +53,14 @@ public class HardCodedResidueInfo {
 		for (String threeLet : three2one.keySet())
 			one2three.put(three2one.get(threeLet), threeLet);
 
-		possibleBBAtomsLookup = new HashSet<>();
+		possibleAABBAtomsLookup = new HashSet<String>();
 		for (String name : possibleAABBAtoms) {
-			possibleBBAtomsLookup.add(name);
+			possibleAABBAtomsLookup.add(name);
+		}
+
+		possibleNABBAtomsLookup = new HashSet<String>();
+		for (String name : possibleNABBAtoms) {
+			possibleNABBAtomsLookup.add(name);
 		}
 	}
 
@@ -93,15 +100,12 @@ public class HardCodedResidueInfo {
 		// do we currently support mutations to the given amino-acid type?
 		if (templ.templateRes.coords == null) {
 			return false;
-		}
-		return hasAminoAcidBB(templ.templateRes) || hasNucleicAcidBB(templ.templateRes); // DZ:
-																							// now
-																							// supports
-																							// nucleic
-																							// acids
+		} else
+			return hasAminoAcidBB(templ.templateRes) || hasNucleicAcidBB(templ.templateRes);
 		// can currently mutate to any amino acid (D or L, naturally
 		// occurring sidechain or not) whose sidechain attaches only
 		// to CA and for which we have template coords
+		// DZ: now supports nucleic acids as well
 	}
 
 	public static ArrayList<String> listBBAtomsForMut(ResidueTemplate newTemplate, ResidueTemplate oldTemplate) {
@@ -110,8 +114,9 @@ public class HardCodedResidueInfo {
 		// basically backbone atoms that are present both before and after the
 		// mutation)
 
-		if (!canMutateTo(newTemplate))
+		if (!canMutateTo(newTemplate)) {
 			throw new UnsupportedOperationException("ERROR: Can't currently mutate to " + newTemplate.name);
+		}
 
 		ArrayList<String> ans = new ArrayList<>();
 
@@ -188,7 +193,6 @@ public class HardCodedResidueInfo {
 			int C = template.templateRes.getAtomIndexByName("C");
 			return new int[] { CA, N, C };
 		} else if (hasNucleicAcidBB(template.templateRes)) {
-			// going to align using C4' for now
 			int O4 = template.templateRes.getAtomIndexByName("O4'");
 			int C1 = template.templateRes.getAtomIndexByName("C1'");
 			int C2 = template.templateRes.getAtomIndexByName("C2'");
@@ -335,7 +339,7 @@ public class HardCodedResidueInfo {
 		case PHOSPHODIESTER:
 			index1 = res1.getAtomIndexByName("O3'");
 			index2 = res2.getAtomIndexByName("P");
-			if (index2 == -1 || !(hasNucleicAcidBB(res1) && hasNucleicAcidBB(res2))) {
+			if (!(hasNucleicAcidBB(res1) && hasNucleicAcidBB(res2))) {
 				return false;
 			}
 			break;
@@ -349,6 +353,12 @@ public class HardCodedResidueInfo {
 		default:
 			throw new RuntimeException("Bond type not recognized.");
 		}
+
+		if (index1 == -1 || index2 == -1) {
+			return false;
+			// atoms not found.
+		}
+
 		// Get distance between these atoms
 		double dist = VectorAlgebra.distance(res1.coords, index1, res2.coords, index2);
 		if (dist < maxBondDist) {

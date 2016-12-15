@@ -132,7 +132,7 @@ public class ResidueTypeDOF extends DegreeOfFreedom {
         for (Atom atom : res.atoms) {
             
             // skip backbone atoms
-            if (HardCodedResidueInfo.possibleBBAtomsLookup.contains(atom.name)) {
+            if (HardCodedResidueInfo.possibleAABBAtomsLookup.contains(atom.name)) {
                 continue;
             }
             
