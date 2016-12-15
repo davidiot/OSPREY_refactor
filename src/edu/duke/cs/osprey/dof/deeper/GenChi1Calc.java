@@ -21,7 +21,8 @@ import edu.duke.cs.osprey.tools.Protractor;
  */
 public class GenChi1Calc {
         
-    public static double getGenChi1(Residue res){//Get the generalized chi1 of a residue
+    public static double getGenChi1(Residue res){
+    	//Get the generalized chi1 of a residue
         
         if( res.template.name.equalsIgnoreCase("GLY") )
             return 0;
@@ -29,9 +30,24 @@ public class GenChi1Calc {
             String lastAtom = getGenChi1LastAtom(res.template.name);
             
             double lastCoords[] = res.getCoordsByAtomName(lastAtom);
-            double NCoords[] = res.getCoordsByAtomName("N");
-            double CACoords[] = res.getCoordsByAtomName("CA");
-            double CBCoords[] = res.getCoordsByAtomName("CB");
+            double[] NCoords;
+			double[] CACoords;
+			double[] CBCoords;
+			if (HardCodedResidueInfo.hasNucleicAcidBB(res)) {
+				// DZ: analogous positions in nucleic acids
+				NCoords = res.getCoordsByAtomName("O4'");
+				CACoords = res.getCoordsByAtomName("C1'");
+				CBCoords = res.getCoordsByAtomName("CB");
+			} else {
+				NCoords = res.getCoordsByAtomName("N");
+				CACoords = res.getCoordsByAtomName("CA");
+				CBCoords = HardCodedResidueInfo.findPivotCoord(res);
+			}
+
+			if (lastCoords == null || NCoords == null || CACoords == null | CBCoords == null) {
+				// not a protein residue. Doesn't have gen chi1
+				return Double.NaN;
+			}
             
             if(lastCoords==null || NCoords==null || CACoords==null | CBCoords==null){
                 //not a protein residue.  Doesn't have gen chi1
@@ -52,6 +68,7 @@ public class GenChi1Calc {
         //set the residue to have the specified gen chi1 (in degrees)
 
         if( (!HardCodedResidueInfo.hasAminoAcidBB(res)) 
+        		|| !(HardCodedResidueInfo.hasNucleicAcidBB(res)) // DZ: NA BBs are fine now
                 || res.template.name.equalsIgnoreCase("GLY")
                 || res.template.name.equalsIgnoreCase("PRO") ){
             //Glycine doesn't have a generalized chi1, 
@@ -64,8 +81,25 @@ public class GenChi1Calc {
         double curGenChi1 = getGenChi1(res);
         double genChi1Change = ang - curGenChi1;
         
-        DihedralRotation dihRot = new DihedralRotation( res.getCoordsByAtomName("CA"),
-                res.getCoordsByAtomName("CB"), genChi1Change );
+        double[] CACoords;
+		double[] CBCoords;
+		String pivotAtom; // CB for amino acids, N9 or N1 for nucleic acids.
+		if (HardCodedResidueInfo.hasNucleicAcidBB(res)) {
+			// analogous positions in nucleic acids
+			CACoords = res.getCoordsByAtomName("C1'");
+			CBCoords = res.getCoordsByAtomName("CB");
+			pivotAtom = "CB";
+		} else {
+			CACoords = res.getCoordsByAtomName("CA");
+			CBCoords = HardCodedResidueInfo.findPivotCoord(res);
+			if (HardCodedResidueInfo.isPyrimidine(res.template.name)) {
+				pivotAtom = "N9";
+			} else {
+				pivotAtom = "N1";
+			}
+		}
+		
+		DihedralRotation dihRot = new DihedralRotation(CACoords, CBCoords, genChi1Change);
         
         //now carry out the rotation on all the sidechain atoms
         //(expect CB, since it's part of the bond begin rotated around)
@@ -74,30 +108,35 @@ public class GenChi1Calc {
             
             String atomName = res.atoms.get(atomNum).name;
             
-            if(SidechainIdealizer.isSidechainAtom(atomName, res)){
-                if( ! ( atomName.equalsIgnoreCase("CB") ) )
-                    dihRot.transform(res.coords, atomNum);
+			if (SidechainIdealizer.isSidechainAtom(atomName, res)) {
+				if (!(atomName.equalsIgnoreCase(pivotAtom))) {
+					dihRot.transform(res.coords, atomNum);
+				}
             }
         }
 
     }
     
-    
-    
-    public static String getGenChi1LastAtom(String resName){//Get atom name X where generalized chi1 is N-CA-CB-X
+	public static String getGenChi1LastAtom(String resName) {
+		// Get atom name X where generalized chi1 is N-CA-CB-X
 
-            if( resName.equalsIgnoreCase("val") || resName.equalsIgnoreCase("ile") )
-                return "CG1";
-            else if( resName.equalsIgnoreCase("ser") )
-                return "OG";
-            else if( resName.equalsIgnoreCase("thr") )
-                return "OG1";
-            else if( resName.equalsIgnoreCase("cys") || resName.equalsIgnoreCase("cyx") )
-                return "SG";
-            else if( resName.equalsIgnoreCase("ala") )
-                return "HB1";
-            else
-                return "CG";
-    }
+		if (resName.equalsIgnoreCase("val") || resName.equalsIgnoreCase("ile")) {
+			return "CG1";
+		} else if (resName.equalsIgnoreCase("ser")) {
+			return "OG";
+		} else if (resName.equalsIgnoreCase("thr")) {
+			return "OG1";
+		} else if (resName.equalsIgnoreCase("cys") || resName.equalsIgnoreCase("cyx")) {
+			return "SG";
+		} else if (resName.equalsIgnoreCase("ala")) {
+			return "HB1";
+		} else if (HardCodedResidueInfo.isPyrimidine(resName)) {
+			return "C2";
+		} else if (HardCodedResidueInfo.isPurine(resName)) {
+			return "C4";
+		} else {
+			return "CG";
+		}
+	}
     
 }

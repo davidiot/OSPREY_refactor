@@ -149,6 +149,41 @@ public class HardCodedResidueInfo {
 		return ans;
 	}
 
+	public static double[] findPivotCoord(Residue res) {
+		for (Atom at : res.atoms) {
+			if (isNAPivot(at)) {
+				return res.getCoordsByAtomName(at.name);
+			}
+		}
+		return null;
+	}
+
+	public static boolean isPyrimidine(String resName) {
+		return resName.equalsIgnoreCase("ru3") || resName.equalsIgnoreCase("ru2") || resName.equalsIgnoreCase("rt3")
+				|| resName.equalsIgnoreCase("rt2") || resName.equalsIgnoreCase("rc3")
+				|| resName.equalsIgnoreCase("rc2");
+	}
+
+	public static boolean isPurine(String resName) {
+		return resName.equalsIgnoreCase("ra3") || resName.equalsIgnoreCase("ra2") || resName.equalsIgnoreCase("rg3")
+				|| resName.equalsIgnoreCase("rg2");
+	}
+
+	public static boolean isNAPivot(Atom at) {
+		// Is the atom next to the C1' carbon? Note that this method assumes
+		// that the atom is not part of the NA backbone. This should return N1
+		// for purines and N9 for pyrimidines
+		if (at.name.equalsIgnoreCase("H1'") || at.name.equalsIgnoreCase("C2'") || at.name.equalsIgnoreCase("O4'")) {
+			return false;
+		}
+		for (Atom neighbors : at.bonds) {
+			if (neighbors.name.equalsIgnoreCase("C1'")) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static int[][] findMutAlignmentAtoms(ResidueTemplate template1, ResidueTemplate template2) {
 		/*
 		 * List indices of atoms in the two residue templates that can be

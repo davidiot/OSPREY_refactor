@@ -82,7 +82,7 @@ public class ResBBState implements Serializable {
 					CBCoord = at.getCoords();// since we're just using it to get
 												// a rotation
 				// about CA, it's OK if it's a little closer than usual to CA
-			} else if (isNAPivot(at)) {
+			} else if (HardCodedResidueInfo.isNAPivot(at)) {
 				CBCoord = at.getCoords();
 			}
 
@@ -95,21 +95,6 @@ public class ResBBState implements Serializable {
 				}
 			}
 		}
-	}
-    
-    private boolean isNAPivot(Atom at) {
-		// Is the atom next to the C1' carbon? Note that this method assumes
-		// that the atom is not part of the NA backbone. This should return N1
-		// for purines and N9 for pyrimidines
-		if (at.name.equalsIgnoreCase("H1'") || at.name.equalsIgnoreCase("C2'") || at.name.equalsIgnoreCase("O4'")) {
-			return false;
-		}
-		for (Atom neighbors : at.bonds) {
-			if (neighbors.name.equalsIgnoreCase("C1'")) {
-				return true;
-			}
-		}
-		return false;
 	}
     
     
@@ -137,12 +122,7 @@ public class ResBBState implements Serializable {
 			if (type == BBType.AMINO_ACID) {
 				resCBCoord = res.getCoordsByAtomName("CB");
 			} else {
-				for (Atom at : res.atoms) {
-					if (isNAPivot(at)) {
-						resCBCoord = res.getCoordsByAtomName(at.name);
-						break;
-					}
-				}
+				resCBCoord = HardCodedResidueInfo.findPivotCoord(res);
 			}
 			if (resCBCoord != null) {
 				double[] resCACoord;
