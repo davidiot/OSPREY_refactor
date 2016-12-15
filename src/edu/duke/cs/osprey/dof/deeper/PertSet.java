@@ -12,6 +12,7 @@ import edu.duke.cs.osprey.multistatekstar.ResidueTermini;
 import edu.duke.cs.osprey.dof.deeper.perts.Backrub;
 import edu.duke.cs.osprey.dof.deeper.perts.Perturbation;
 import edu.duke.cs.osprey.dof.deeper.perts.PerturbationBlock;
+import edu.duke.cs.osprey.dof.deeper.perts.RingPucker;
 import edu.duke.cs.osprey.structure.Molecule;
 import edu.duke.cs.osprey.structure.Residue;
 import edu.duke.cs.osprey.tools.StringParsing;
@@ -366,6 +367,8 @@ public class PertSet implements Serializable {
             
             if(type.equalsIgnoreCase("BACKRUB"))
                 pert = new Backrub(directlyAffectedResidues);
+            else if(type.equalsIgnoreCase("RINGPUCKER"))
+                pert = new RingPucker(directlyAffectedResidues);
             else if(type.equalsIgnoreCase("SHEAR"))
                 pert = new Shear(directlyAffectedResidues);
             else if(type.equalsIgnoreCase("LOOP CLOSURE ADJUSTMENT"))
