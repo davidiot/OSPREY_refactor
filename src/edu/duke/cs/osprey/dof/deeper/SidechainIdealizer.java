@@ -36,19 +36,12 @@ public class SidechainIdealizer {
     public static void idealizeSidechain(Residue res){
 
     	// Coordinates of key atoms in the residue
-		double[] NCoord;
-		double[] CACoord;
-		double[] CCoord;
-		if (HardCodedResidueInfo.hasNucleicAcidBB(res)) {
-			// analogous positions in nucleic acids
-			NCoord = res.getCoordsByAtomName("O4'");
-			CACoord = res.getCoordsByAtomName("C1'");
-			CCoord = res.getCoordsByAtomName("C2'");
-		} else {
-			NCoord = res.getCoordsByAtomName("N");
-			CACoord = res.getCoordsByAtomName("CA");
-			CCoord = res.getCoordsByAtomName("C");
-		}
+    	// DZ: refactoring this into HardCodedResidueInfo to try to make things more general.
+    	double[][] keyCoords = HardCodedResidueInfo.getKeyCoords(res);
+		double[] NCoord = keyCoords[0];
+		double[] CACoord = keyCoords[1];
+		double[] CBCoord = keyCoords[2];
+		double[] CCoord = keyCoords[3];
 
         if(res.template.name.equalsIgnoreCase("GLY")){
             //No rotation matrix but two HAs to handle
@@ -103,12 +96,6 @@ public class SidechainIdealizer {
         else{
         	//Will have a C-beta
         	// DZ: can also be an analogue for RNA.
-        	double CBCoord[];
-			if (HardCodedResidueInfo.hasAminoAcidBB(res)) {
-				CBCoord = res.getCoordsByAtomName("CB");
-			} else {
-				CBCoord = HardCodedResidueInfo.findPivotCoord(res);
-			}
 
             double[] t1, t2;
 
