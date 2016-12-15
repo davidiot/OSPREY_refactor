@@ -100,24 +100,6 @@ public class PartialStructureSwitch extends Perturbation {
     }
     
     
-    private static boolean isBBAtom(Residue res, String atomName){
-        //Check if the atom should be moved as part of the backbone
-        if(res.template.name.equalsIgnoreCase("PRO")){//CD moves with backbone
-            if(atomName.equalsIgnoreCase("CD"))
-                return true;
-        }
-        
-        for(String BBName : HardCodedResidueInfo.possibleAABBAtoms){
-            if(atomName.equalsIgnoreCase(BBName))
-                return true;
-        }
-        
-        
-        //doesn't match a known backbone atom name
-        return false;
-    }
-    
-    
     @Override
     public Perturbation copyForNewMolecule(Molecule mol, PerturbationBlock block){
         return new PartialStructureSwitch(
