@@ -30,19 +30,12 @@ public class GenChi1Calc {
             String lastAtom = getGenChi1LastAtom(res.template.name);
             
             double lastCoords[] = res.getCoordsByAtomName(lastAtom);
-            double[] NCoords;
-			double[] CACoords;
-			double[] CBCoords;
-			if (HardCodedResidueInfo.hasNucleicAcidBB(res)) {
-				// DZ: analogous positions in nucleic acids
-				NCoords = res.getCoordsByAtomName("O4'");
-				CACoords = res.getCoordsByAtomName("C1'");
-				CBCoords = res.getCoordsByAtomName("CB");
-			} else {
-				NCoords = res.getCoordsByAtomName("N");
-				CACoords = res.getCoordsByAtomName("CA");
-				CBCoords = HardCodedResidueInfo.findPivotCoord(res);
-			}
+            
+            double[][] keyCoords = HardCodedResidueInfo.getKeyCoords(res);
+            double[] NCoords = keyCoords[0];
+			double[] CACoords = keyCoords[1];
+			double[] CBCoords = keyCoords[2];
+			
 
 			if (lastCoords == null || NCoords == null || CACoords == null | CBCoords == null) {
 				// not a protein residue. Doesn't have gen chi1
@@ -81,23 +74,15 @@ public class GenChi1Calc {
         double curGenChi1 = getGenChi1(res);
         double genChi1Change = ang - curGenChi1;
         
-        double[] CACoords;
-		double[] CBCoords;
-		String pivotAtom; // CB for amino acids, N9 or N1 for nucleic acids.
-		if (HardCodedResidueInfo.hasNucleicAcidBB(res)) {
-			// analogous positions in nucleic acids
-			CACoords = res.getCoordsByAtomName("C1'");
-			CBCoords = res.getCoordsByAtomName("CB");
-			pivotAtom = "CB";
-		} else {
-			CACoords = res.getCoordsByAtomName("CA");
-			CBCoords = HardCodedResidueInfo.findPivotCoord(res);
-			if (HardCodedResidueInfo.isPyrimidine(res.template.name)) {
-				pivotAtom = "N9";
-			} else {
-				pivotAtom = "N1";
-			}
-		}
+        double[][] keyCoords = HardCodedResidueInfo.getKeyCoords(res);
+        double[] CACoords = keyCoords[1];
+        double[] CBCoords = keyCoords[2];
+		// pivotAtom will be CB for amino acids, N9 or N1 for nucleic acids.
+		String pivotAtom = HardCodedResidueInfo.hasNucleicAcidBB(res)
+				? HardCodedResidueInfo.isPyrimidine(res.template.name)
+						? "N9" 
+						: "N1"
+				: "CB";
 		
 		DihedralRotation dihRot = new DihedralRotation(CACoords, CBCoords, genChi1Change);
         
