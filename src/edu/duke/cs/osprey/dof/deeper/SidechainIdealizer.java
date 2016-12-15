@@ -35,10 +35,20 @@ public class SidechainIdealizer {
     //This function rotates the sidechain as a rigid body about CA
     public static void idealizeSidechain(Residue res){
 
-        //Coordinates of key atoms in the residue
-        double NCoord[] = res.getCoordsByAtomName("N");
-        double CACoord[] = res.getCoordsByAtomName("CA");
-        double CCoord[] = res.getCoordsByAtomName("C");
+    	// Coordinates of key atoms in the residue
+		double[] NCoord;
+		double[] CACoord;
+		double[] CCoord;
+		if (HardCodedResidueInfo.hasNucleicAcidBB(res)) {
+			// analogous positions in nucleic acids
+			NCoord = res.getCoordsByAtomName("O4'");
+			CACoord = res.getCoordsByAtomName("C1'");
+			CCoord = res.getCoordsByAtomName("C2'");
+		} else {
+			NCoord = res.getCoordsByAtomName("N");
+			CACoord = res.getCoordsByAtomName("CA");
+			CCoord = res.getCoordsByAtomName("C");
+		}
 
         if(res.template.name.equalsIgnoreCase("GLY")){
             //No rotation matrix but two HAs to handle
@@ -90,9 +100,15 @@ public class SidechainIdealizer {
 
             System.arraycopy(newHA, 0, res.coords, HANum*3, 3);//Change the HA coordinates
         }
-        else{//Will have a C-beta
-
-            double CBCoord[] = res.getCoordsByAtomName("CB");
+        else{
+        	//Will have a C-beta
+        	// DZ: can also be an analogue for RNA.
+        	double CBCoord[];
+			if (HardCodedResidueInfo.hasAminoAcidBB(res)) {
+				CBCoord = res.getCoordsByAtomName("CB");
+			} else {
+				CBCoord = HardCodedResidueInfo.findPivotCoord(res);
+			}
 
             double[] t1, t2;
 
@@ -134,7 +150,11 @@ public class SidechainIdealizer {
             double newHA[] = VectorAlgebra.subtract( VectorAlgebra.scale( VectorAlgebra.add(t1,t2) , 0.5f), CACoord);
             newHA = VectorAlgebra.add( VectorAlgebra.scale( newHA, 1.100f / VectorAlgebra.norm(newHA) ), CACoord );
             
-            int HANum = res.getAtomIndexByName("HA");
+            // DZ: We use H1 for nucleic acids.
+            int HANum = HardCodedResidueInfo.hasNucleicAcidBB(res)
+            		? res.getAtomIndexByName("H1'")
+            				: res.getAtomIndexByName("HA");
+            		
             System.arraycopy(newHA, 0, res.coords, HANum*3, 3);//Change the HA coordinates
         }
 
@@ -169,11 +189,20 @@ public class SidechainIdealizer {
             }
         }
 
-        for(String name2 : HardCodedResidueInfo.possibleAABBAtoms){
-            if(name2.equalsIgnoreCase(atomName)){
-                return false;
-            }
-        }
+        if (HardCodedResidueInfo.hasAminoAcidBB(res)) {
+			for (String name2 : HardCodedResidueInfo.possibleAABBAtoms) {
+				if (name2.equalsIgnoreCase(atomName)) {
+					return false;
+				}
+			}
+		} else if (HardCodedResidueInfo.hasNucleicAcidBB(res)) {
+
+			for (String name2 : HardCodedResidueInfo.possibleNABBAtoms) {
+				if (name2.equalsIgnoreCase(atomName)) {
+					return false;
+				}
+			}
+		}
         
         return true;
     }
