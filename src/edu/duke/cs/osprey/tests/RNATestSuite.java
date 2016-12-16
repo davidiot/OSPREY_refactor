@@ -29,7 +29,7 @@ public class RNATestSuite {
 		testProteinSwitch();
 		testRNASwitch();
 		testBackrub();
-		// testRNArub();
+		testRingPucker();
 	}
 
 	public static void testBackrub() {
@@ -54,27 +54,20 @@ public class RNATestSuite {
 		PDBFileWriter.writePDBFile(m2, "testResults/1CC8rub.pdb");
 	}
 
-//	public static void testRNArub() {
-//		Molecule m = PDBFileReader.readPDBFile("354dH.pdb");
-//		ArrayList<Residue> affected = new ArrayList<Residue>();
-//		affected.add(m.residues.get(0));
-//		System.out.println(m.residues.get(0).fullName); // RC3 A 70
-//		RNABackrub rub = new RNABackrub(affected);
-//		rub.doPerturbationMotion(10);
-//		Molecule m2 = PDBFileReader.readPDBFile("354dH.pdb");
-//		affected.get(0).indexInMolecule = 10;
-//		affected.get(0).fullName = "RC3 C  10 ";
-//		m2.appendResidue(affected.get(0));
-//		Molecule m3 = PDBFileReader.readPDBFile("354dH.pdb");
-//		affected = new ArrayList<Residue>();
-//		affected.add(m3.residues.get(0));
-//		rub = new RNABackrub(affected);
-//		rub.doPerturbationMotion(-10);
-//		affected.get(0).indexInMolecule = 15;
-//		affected.get(0).fullName = "RC3 C  15 ";
-//		m2.appendResidue(affected.get(0));
-//		PDBFileWriter.writePDBFile(m2, "testResults/354dHrub.pdb");
-//	}
+	public static void testRingPucker() {
+		Molecule molecule = PDBFileReader.readPDBFile("354dH.pdb");
+		for (int i : new int[] { -20, -10, 10, 20 }) {
+			Molecule m = PDBFileReader.readPDBFile("354dH.pdb");
+			ArrayList<Residue> affected = new ArrayList<Residue>();
+			affected.add(m.residues.get(0));
+			RingPucker rp = new RingPucker(affected);
+			rp.doPerturbationMotion(i);
+			affected.get(0).indexInMolecule = 200 + i;
+			affected.get(0).fullName = "RC3 C  " + affected.get(0).indexInMolecule + " ";
+			molecule.appendResidue(affected.get(0));
+		}
+		PDBFileWriter.writePDBFile(molecule, "testResults/354dHpuck.pdb");
+	}
 
 	public static void testProteinSwitch() {
 		Molecule m = PDBFileReader.readPDBFile("1CC8hel.pdb");
