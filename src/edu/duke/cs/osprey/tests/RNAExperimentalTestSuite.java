@@ -17,7 +17,6 @@ import edu.duke.cs.osprey.tools.Protractor;
  */
 public class RNAExperimentalTestSuite {
 
-	
 	private static final String[] tauAngles = new String[] { "N", "CA", "C" };
 	private static final String[] atomNamesForAngle1 = new String[] { "O3'", "C3'", "C2'" };
 	private static final String[] atomNamesForAngle2 = new String[] { "C2'", "C1'", "O4'" };
@@ -25,20 +24,18 @@ public class RNAExperimentalTestSuite {
 	private static final String[][] atomNamesForAngles = new String[][] { atomNamesForAngle1, atomNamesForAngle2,
 			atomNamesForAngle3 }; // tau atom analogues
 
-	private static final String[] files = new String[] { "1CC8.ss.pdb", "1CC8hel.pdb", "1CC8sheet.pdb", "1cslH.pdb",
-			"1cslH.renum.pdb", "1fxlFH.pdb", "1igdFH.pdb", "2oeuH.pdb", "354dH.pdb", "3IWNFH.pdb", "3MXHFH.pdb",
-			"3P49FH.pdb" };
+	private static final String[] files = new String[] { "1cslH.pdb" };
 
 	public static void runAllTests() {
-		printBackrub();
+		// printBackrub();
 		// investigateBackrub();
-		// investigateRNABackrub();
+		investigateRNABackrub();
 	}
 
 	public static void printBackrub() {
 
 		Molecule m = PDBFileReader.readPDBFile("1CC8.ss.pdb");
-		
+
 		Molecule m1 = PDBFileReader.readPDBFile("1CC8.ss.pdb");
 		ArrayList<Residue> affected1 = new ArrayList<Residue>();
 		affected1.add(m1.residues.get(55));
@@ -55,7 +52,7 @@ public class RNAExperimentalTestSuite {
 		m.appendResidue(affected1.get(0));
 		m.appendResidue(affected1.get(1));
 		m.appendResidue(affected1.get(2));
-		
+
 		Molecule m2 = PDBFileReader.readPDBFile("1CC8.ss.pdb");
 		ArrayList<Residue> affected2 = new ArrayList<Residue>();
 		affected2.add(m2.residues.get(55));
@@ -72,7 +69,7 @@ public class RNAExperimentalTestSuite {
 		m.appendResidue(affected2.get(0));
 		m.appendResidue(affected2.get(1));
 		m.appendResidue(affected2.get(2));
-		
+
 		Molecule m3 = PDBFileReader.readPDBFile("1CC8.ss.pdb");
 		ArrayList<Residue> affected3 = new ArrayList<Residue>();
 		affected3.add(m3.residues.get(55));
@@ -89,35 +86,39 @@ public class RNAExperimentalTestSuite {
 		m.appendResidue(affected3.get(0));
 		m.appendResidue(affected3.get(1));
 		m.appendResidue(affected3.get(2));
-		
+
 		PDBFileWriter.writePDBFile(m, "testResults/1CC8.backrubcomparison.pdb");
 	}
-	
+
 	public static void investigateBackrub() {
-		Molecule m = PDBFileReader.readPDBFile("1CC8.ss.pdb");
-		ArrayList<Residue> affected = new ArrayList<Residue>();
-		affected.add(m.residues.get(55));
-		affected.add(m.residues.get(56));
-		affected.add(m.residues.get(57));
-		double[] originalAngles = measureTauAngles(affected);
-		System.out.println(Arrays.toString(originalAngles));
-		Backrub rub = new Backrub(affected, 2);
-		rub.doPerturbationMotion(2.5);
-		double[] newAngles = measureTauAngles(affected);
-		System.out.println(Arrays.toString(newAngles));
+		for (int x = 0; x < 60; x++) {
+			Molecule m = PDBFileReader.readPDBFile("1CC8.ss.pdb");
+			ArrayList<Residue> affected = new ArrayList<Residue>();
+			affected.add(m.residues.get(x));
+			affected.add(m.residues.get(x + 1));
+			affected.add(m.residues.get(x + 2));
+			double[] originalAngles = measureTauAngles(affected);
+			Backrub rub = new Backrub(affected, 2);
+			rub.doPerturbationMotion(2.5);
+			double[] newAngles = measureTauAngles(affected);
+			double[] differences = new double[3];
+			for (int i = 0; i < differences.length; i++) {
+				differences[i] = Math.abs(newAngles[i] - originalAngles[i]);
+			}
+			System.out.println(Arrays.toString(differences));
+		}
 	}
-	
+
 	public static void investigateRNABackrub() {
 
 		int min = -101;
 		double minStrain = Double.MAX_VALUE;
-		for (int x = -100; x < 100; x++) {
+		for (int x = -10; x < 10; x++) {
 			int resCount = 0;
-			double totalStrain = 0;
-			double endStrain = 0;
-			double scaling = x / 100.0;
+			double scaling = x / 10.0;
 			for (String file : files) {
 				Molecule m1 = PDBFileReader.readPDBFile(file);
+				int count = 0;
 				for (Residue r : m1.residues) {
 					if (HardCodedResidueInfo.hasNucleicAcidBB(r)) {
 						resCount++;
@@ -130,24 +131,20 @@ public class RNAExperimentalTestSuite {
 						double[] differences = new double[3];
 						for (int i = 0; i < differences.length; i++) {
 							differences[i] = Math.abs(newAngles[i] - originalAngles[i]);
-							totalStrain += differences[i];
+							if (newAngles[i] > 116.5 || newAngles[i] < 105.5) {
+								count++;
+								System.out.println(r.fullName);
+							}
 						}
-						endStrain += differences[0] + differences[2];
+						System.out.println(scaling);
+						System.out.println(Arrays.toString(newAngles));
 					}
 				}
-			}
-			double averageTotalStrain = totalStrain / resCount / 3;
-			System.out.println(averageTotalStrain);
-			double averageEndStrain = endStrain / resCount / 2;
-			System.out.println(averageEndStrain);
-			if (averageTotalStrain < minStrain) {
-				minStrain = averageTotalStrain;
-				min = x;
+				System.out.println("Invalid perturbations: " + count);
 			}
 		}
-		System.out.println(min);
 	}
-	
+
 	private static double[] measureTauAngles(ArrayList<Residue> res) {
 		double[] results = new double[3];
 		for (int i = 0; i < atomNamesForAngles.length; i++) {
