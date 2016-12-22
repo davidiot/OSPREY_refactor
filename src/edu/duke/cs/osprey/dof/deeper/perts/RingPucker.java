@@ -10,15 +10,17 @@ import edu.duke.cs.osprey.tools.Protractor;
 import edu.duke.cs.osprey.tools.RigidBodyMotion;
 import edu.duke.cs.osprey.tools.VectorAlgebra;
 
-/*
+/**
  * A perturbation for RNA residues that allows the base and OH groups to move
+ * 
  * @author dzhou
  */
 public class RingPucker extends Perturbation {
 
-	// For O(1) checking
+	// For O(1) lookup when checking which atoms to move
 	private static HashSet<String> atomsToHoldInPlace;
 
+	// initialize the HashSet
 	static {
 		atomsToHoldInPlace = new HashSet<String>();
 		for (String atom : HardCodedResidueInfo.possibleNABBAtoms) {
@@ -28,6 +30,7 @@ public class RingPucker extends Perturbation {
 		}
 	}
 
+	// Constructor
 	public RingPucker(ArrayList<Residue> resDirectlyAffected) {
 		super(resDirectlyAffected);
 	}
@@ -36,7 +39,6 @@ public class RingPucker extends Perturbation {
 	public boolean doPerturbationMotion(double paramVal) {
 		// Apply the perturbation
 		// Use an arbitrary param (primary ring pucker angle in degrees)
-		// Defined as the angle of rotation about the axis between
 		// Don't store rotation matrices or translations
 		Residue res = resDirectlyAffected.get(0);
 		double originalDihedralAngle = Protractor.measureDihedral(res.coords, res.getAtomIndexByName("C1'"),
@@ -47,10 +49,10 @@ public class RingPucker extends Perturbation {
 		return true; // we should always be able to do a ring pucker in RNA
 	}
 
-	/*
-	 * rotate C1 (the carbon connected to the nitrogenous base), as well as the
-	 * base and H1' we rotate about the axis defined by C2 and O4 by the angle
-	 * specified by paramVal
+	/**
+	 * Rotate C1 (the carbon connected to the nitrogenous base), as well as the
+	 * base and H1'. We rotate about the axis defined by C2' and O4' by the
+	 * angle specified by paramVal
 	 */
 	private void rotateC1(Residue res, double paramVal) {
 		double[] rotationAxis = VectorAlgebra.subtract(res.getCoordsByAtomName("C2'"), res.getCoordsByAtomName("O4'"));
@@ -65,8 +67,8 @@ public class RingPucker extends Perturbation {
 
 	}
 
-	/*
-	 * adjust C2 (the carbon connected to the OH group) so that it is close to
+	/**
+	 * Adjust C2 (the carbon connected to the OH group) so that it is close to
 	 * tetahedral again.
 	 */
 	private void adjustC2(Residue res, double originalDihedralAngle) {
