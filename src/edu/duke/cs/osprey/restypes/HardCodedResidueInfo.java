@@ -12,6 +12,7 @@ import java.util.Set;
 import edu.duke.cs.osprey.structure.Atom;
 import edu.duke.cs.osprey.structure.Molecule;
 import edu.duke.cs.osprey.structure.Residue;
+import edu.duke.cs.osprey.tools.Protractor;
 import edu.duke.cs.osprey.tools.VectorAlgebra;
 
 /**
@@ -201,6 +202,34 @@ public class HardCodedResidueInfo {
 			}
 		}
 		return false;
+	}
+	
+	/**
+	 * Sets the pucker of an NA residue whose pucker is not specified
+	 * @param res
+	 */
+	public static void setPucker(Residue res) {
+		if (hasNucleicAcidBB(res)) { // only adjust pucker for nucleic acids.
+			double[] C5 = res.getCoordsByAtomName("C5'");
+			double[] C4 = res.getCoordsByAtomName("C4'");
+			double[] C3 = res.getCoordsByAtomName("C3'");
+			double[] O3 = res.getCoordsByAtomName("O3'");
+			double delta = Protractor.measureDihedral(new double[][] { C5, C4, C3, O3 });
+			// The following values came from Swati's thesis, which can be found here: /usr/project/dlab/Users/swati/Thesis/Document/dissertation_0420_2.pdf
+			if (delta >= 60 && delta <= 105) { // C3' endo
+				res.fullName = res.fullName
+						.replace("  U", "RU3")
+						.replace("  G", "RG3")
+						.replace("  C", "RC3")
+						.replace("  A", "RA3");
+			} else if (delta >= 125 && delta <= 165) { // C2' endo
+				res.fullName = res.fullName
+						.replace("  U", "RU2")
+						.replace("  G", "RG2")
+						.replace("  C", "RC2")
+						.replace("  A", "RA2");
+			}
+		}
 	}
 
 	public static int[][] findMutAlignmentAtoms(ResidueTemplate template1, ResidueTemplate template2) {
