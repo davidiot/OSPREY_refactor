@@ -1,5 +1,7 @@
 package edu.duke.cs.osprey.tests;
 
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import edu.duke.cs.osprey.control.EnvironmentVars;
@@ -22,14 +24,85 @@ import edu.duke.cs.osprey.tools.Protractor;
 
 public class RNATestSuite {
 	public static void runAllTests() {
-		test1cslHEnergy();
-		testMutation();
-		testDihedral();
-		measureAngles();
-		testProteinSwitch();
-		testRNASwitch();
-		testBackrub();
-		testRingPucker();
+		// test1cslHEnergy();
+		// testMutation();
+		// testDihedral();
+		// measureAngles();
+		// testProteinSwitch();
+		// testRNASwitch();
+		// testBackrub();
+		// testRingPucker();
+		try {
+			analyze3p49tau();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	private static final String[] tauAngles = new String[] { "N", "CA", "C" };
+	private static final String[] rnaAngles = new String[] { "C1'", "C2'", "O2'" };
+
+	private static double measureTauAngles(Residue res) {
+		double[] coordsA = res.getCoordsByAtomName(tauAngles[0]);
+		double[] coordsB = res.getCoordsByAtomName(tauAngles[1]);
+		double[] coordsC = res.getCoordsByAtomName(tauAngles[2]);
+		return Protractor.getAngleDegrees(coordsA, coordsB, coordsC);
+	}
+
+	private static double measureRNAAngles(Residue res) {
+		double[] coordsA = res.getCoordsByAtomName(rnaAngles[0]);
+		double[] coordsB = res.getCoordsByAtomName(rnaAngles[1]);
+		double[] coordsC = res.getCoordsByAtomName(rnaAngles[2]);
+		return Protractor.getAngleDegrees(coordsA, coordsB, coordsC);
+	}
+
+	public static void analyze3p49() throws FileNotFoundException {
+		PrintWriter output = new PrintWriter("testResults/3p49.txt");
+		for (int i = 723; i < 730; i++) {
+			ArrayList<Double> in = new ArrayList<Double>();
+			ArrayList<Double> out = new ArrayList<Double>();
+			for (int j = -1000; j <= 1000; j++) {
+				Molecule m = PDBFileReader.readPDBFile("3P49FH.pdb");
+				Residue r = m.getResByPDBResNumber(i + "");
+				ArrayList<Residue> affected = new ArrayList<Residue>();
+				affected.add(r);
+				double originalAngle = measureRNAAngles(r);
+				RingPucker rp = new RingPucker(affected);
+				rp.doPerturbationMotion(j / 100.0);
+				double newAngle = measureRNAAngles(r);
+				in.add(j / 100.0);
+				out.add(newAngle - originalAngle);
+			}
+			output.println(i);
+			output.println(out.toString());
+		}
+		output.close();
+	}
+
+	public static void analyze3p49tau() throws FileNotFoundException {
+		PrintWriter output = new PrintWriter("testResults/3p49tau.txt");
+		for (int i : new int[] { 79, 83, 85, 88, 89, 91 }) {
+			ArrayList<Double> in = new ArrayList<Double>();
+			ArrayList<Double> out = new ArrayList<Double>();
+			for (int j = -250; j <= 250; j++) {
+				Molecule m = PDBFileReader.readPDBFile("3P49FH.pdb");
+				Residue r = m.getResByPDBResNumber(i + "");
+				ArrayList<Residue> affected = new ArrayList<Residue>();
+				affected.add(m.getResByPDBResNumber((i - 1) + ""));
+				affected.add(r);
+				affected.add(m.getResByPDBResNumber((i + 1) + ""));
+				double originalAngle = measureTauAngles(m.getResByPDBResNumber((i + 1) + ""));
+				Backrub br = new Backrub(affected);
+				br.doPerturbationMotion(j / 100.0);
+				double newAngle = measureTauAngles(m.getResByPDBResNumber((i + 1) + ""));
+				in.add(j / 100.0);
+				out.add(newAngle - originalAngle);
+			}
+			output.println(i);
+			output.println(out.toString());
+		}
+		output.close();
 	}
 
 	public static void testBackrub() {
