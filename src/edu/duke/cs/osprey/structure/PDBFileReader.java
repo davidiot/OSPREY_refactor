@@ -96,11 +96,7 @@ public class PDBFileReader {
 
 					if( (!fullResName.equalsIgnoreCase(curResFullName)) && !curResAtoms.isEmpty() ){
 						
-						Residue newRes = new Residue( curResAtoms, curResCoords, curResFullName, m );
-
-						if(termini != null && !termini.contains(newRes)) filter.add(m.residues.size());
-						
-						m.appendResidue(newRes);
+						appendNewResidue(termini, filter, m, curResAtoms, curResCoords, curResFullName);
 						
 						curResAtoms = new ArrayList<>();
 						curResCoords = new ArrayList<>();
@@ -127,9 +123,7 @@ public class PDBFileReader {
 
 			//make last residue
 			if( ! curResAtoms.isEmpty() ){
-				Residue newRes = new Residue( curResAtoms, curResCoords, curResFullName, m );
-				if(termini != null && !termini.contains(newRes)) filter.add(m.residues.size());
-				m.appendResidue(newRes);
+				appendNewResidue(termini, filter, m, curResAtoms, curResCoords, curResFullName);
 			}
 
 
@@ -158,7 +152,20 @@ public class PDBFileReader {
 
 		return m;
 	}
-	
+
+	private static void appendNewResidue(KSTermini termini, ArrayList<Integer> filter, Molecule m,
+			ArrayList<Atom> curResAtoms, ArrayList<double[]> curResCoords, String curResFullName) {
+
+		Residue newRes = new Residue(curResAtoms, curResCoords, curResFullName, m);
+
+		if (termini != null && !termini.contains(newRes)) {
+			filter.add(m.residues.size());
+		}
+
+		HardCodedResidueInfo.setPucker(newRes);
+		
+		m.appendResidue(newRes);
+	}
 	
 	private static void deleteFilteredResidues(Molecule m, ArrayList<Integer> filter) {
 		for( int index = 0; index < filter.size(); ++index ) {
