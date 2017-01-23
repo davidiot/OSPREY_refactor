@@ -3,3 +3,7 @@ lib/nblibraries.properties
 nbproject/*
 build.xml
 nbbuild.xml
+
+# DZ: ignore IntelliJ stuff
+.idea/
+OSPREY_refactor.iml
