@@ -6,3 +6,6 @@ nbbuild.xml
 /dist/
 bin
 
+# DZ: ignore IntelliJ stuff
+.idea/
+OSPREY_refactor.iml
