@@ -64,7 +64,7 @@ public class RNATestSuite {
 
 	public static void testRingPucker() {
 		Molecule molecule = PDBFileReader.readPDBFile("354dH.pdb");
-		for (int i : new int[] { -20, -10, 10, 20 }) {
+		for (int i = -15; i <= 15; i++) {
 			Molecule m = PDBFileReader.readPDBFile("354dH.pdb");
 			ArrayList<Residue> affected = new ArrayList<Residue>();
 			affected.add(m.residues.get(0));
