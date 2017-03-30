@@ -4,6 +4,8 @@
  */
 package edu.duke.cs.osprey.control;
 
+import edu.duke.cs.osprey.confspace.ConfSpace;
+import edu.duke.cs.osprey.astar.GMECMutSpace;
 import edu.duke.cs.osprey.confspace.SearchProblem;
 import edu.duke.cs.osprey.dof.deeper.DEEPerSettings;
 import edu.duke.cs.osprey.dof.deeper.RamachandranChecker;
@@ -30,6 +32,24 @@ public class ConfigFileParser {
     
     public ConfigFileParser(String[] args){
         //parse all config files into params
+        
+        //check format of args
+        if(!args[0].equalsIgnoreCase("-c"))
+            throw new RuntimeException("ERROR: bad arguments (should start with -c)");
+        
+        params.addParamsFromFile(args[1]);//KStar.cfg file
+        EnvironmentVars.setDataDir(params.getValue("DataDir"));
+        
+        for(int argNum=3; argNum<args.length; argNum++)//System.cfg, etc.
+            params.addParamsFromFile(args[argNum]);
+        
+        params.addDefaultParams();//We'll look for this in DataDir
+    }
+    
+    public ConfigFileParser(String[] args, boolean isVerbose){
+        //AAO: as much as i hate to duplicate code, verbosity is a problem with params
+    	//parse all config files into params
+        params.setVerbosity(isVerbose);
         
         //check format of args
         if(!args[0].equalsIgnoreCase("-c"))
@@ -191,7 +211,7 @@ public class ConfigFileParser {
     }
     
     
-    ArrayList<String> getWtRotOnlyRes(){
+    protected ArrayList<String> getWtRotOnlyRes(){
         //List of residues for which we'll only include the wild-type rotamer
         ArrayList<String> wtRotOnlyRes = new ArrayList<>();
         String val = params.getValue("WTRotOnlyRes");
@@ -487,6 +507,20 @@ public class ConfigFileParser {
     // Getter function for the params.
     public ParamSet getParams(){
     	return this.params;
+    }
+    
+    
+    //GMEC mut files
+    public boolean hasGMECMutFile(){
+        return ! params.getValue("GMECMutFile", "None").equalsIgnoreCase("None");
+    }
+    
+    public GMECMutSpace parseGMECMutFile(ConfSpace confSpace){
+        String mutFileName = params.getValue("GMECMutFile", "None");
+        if(mutFileName.equalsIgnoreCase("None"))
+            return null;
+        else
+            return new GMECMutSpace(mutFileName, confSpace);
     }
     
     

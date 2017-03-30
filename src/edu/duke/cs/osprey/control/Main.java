@@ -130,6 +130,14 @@ public class Main {
 				cd.calcBestSequences();
 			}
 		});
+		
+		commands.put("doMultiStateKStar", new Runnable() {
+			@Override
+			public void run() {
+				MSKStarDoer msksd = new MSKStarDoer(args);
+				msksd.calcBestSequences();
+			}
+		});
 
 		commands.put("calcLigResE", new Runnable() {
 			@Override

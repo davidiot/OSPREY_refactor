@@ -18,23 +18,24 @@ import edu.duke.cs.osprey.tools.Stopwatch;
 
 public class ParallelConfPartitionFunction implements PartitionFunction {
 	
-    private EnergyMatrix emat;
-    private PruningMatrix pmat;
-    private ConfSearchFactory confSearchFactory;
-    private ConfEnergyCalculator.Async ecalc;
+    protected EnergyMatrix emat;
+    protected PruningMatrix pmat;
+    protected ConfSearchFactory confSearchFactory;
+    protected ConfEnergyCalculator.Async ecalc;
     
-	private double targetEpsilon;
-	private Status status;
-	private Values values;
-	private BoltzmannCalculator boltzmann;
-	private ConfSearch.Splitter.Stream scoreConfs;
-	private ConfSearch.Splitter.Stream energyConfs;
-	private int numConfsEvaluated;
-	private BigInteger numConfsToScore;
-	private BigDecimal qprimeUnevaluated;
-	private BigDecimal qprimeUnscored;
-	private Stopwatch stopwatch;
-	private boolean isReportingProgress;
+	protected double targetEpsilon;
+	protected Status status;
+	protected Values values;
+	protected BoltzmannCalculator boltzmann;
+	protected ConfSearch.Splitter.Stream scoreConfs;
+	protected ConfSearch.Splitter.Stream energyConfs;
+	protected int numConfsEvaluated;
+	protected BigInteger numConfsToScore;
+	protected BigDecimal qprimeUnevaluated;
+	protected BigDecimal qprimeUnscored;
+	protected Stopwatch stopwatch;
+	protected boolean isReportingProgress;
+	protected ConfListener confListener;
 	
 	public ParallelConfPartitionFunction(EnergyMatrix emat, PruningMatrix pmat, ConfSearchFactory confSearchFactory, ConfEnergyCalculator.Async ecalc) {
 		this.emat = emat;
@@ -55,11 +56,17 @@ public class ParallelConfPartitionFunction implements PartitionFunction {
 		
 		stopwatch = null;
 		isReportingProgress = true;
+		confListener = null;
 	}
 	
 	@Override
 	public void setReportProgress(boolean val) {
 		isReportingProgress = val;
+	}
+	
+	@Override
+	public void setConfListener(ConfListener val) {
+		confListener = val;
 	}
 	
 	@Override
@@ -100,7 +107,7 @@ public class ParallelConfPartitionFunction implements PartitionFunction {
 		stopwatch = new Stopwatch().start();
 	}
 
-	private BigDecimal calcWeightSumUpperBound(ConfSearch tree) {
+	protected BigDecimal calcWeightSumUpperBound(ConfSearch tree) {
 		
 		BigDecimal sum = BigDecimal.ZERO;
 		BigDecimal boundOnAll = BigDecimal.ZERO;
@@ -156,9 +163,6 @@ public class ParallelConfPartitionFunction implements PartitionFunction {
 		int stopAtConf = numConfsEvaluated + maxNumConfs;
 		while (true) {
 			
-			// wait for space to open up Before getting a new conf to minimize
-			ecalc.waitForSpace();
-			
 			// get a conf from the tree
 			// lock though to keep from racing the listener thread on the conf tree
 			ScoredConf conf;
@@ -177,42 +181,44 @@ public class ParallelConfPartitionFunction implements PartitionFunction {
 			}
 			
 			// do the energy calculation asynchronously
-			ecalc.calcEnergyAsync(conf, new ConfEnergyCalculator.Async.Listener() {
-				@Override
-				public void onEnergy(EnergiedConf econf) {
+			ecalc.calcEnergyAsync(conf, (EnergiedConf econf) -> {
 					
-					// energy calculation done
+				// energy calculation done
+				
+				// this is (potentially) running on a task executor listener thread
+				// so lock to keep from racing the main thread
+				synchronized (ParallelConfPartitionFunction.this) {
+				
+					// get the boltzmann weight
+					BigDecimal energyWeight = boltzmann.calc(econf.getEnergy());
+					if (energyWeight.compareTo(BigDecimal.ZERO) == 0) {
+						status = Status.NotEnoughFiniteEnergies;
+						return;
+					}
 					
-					// this is (potentially) running on a task executor listener thread
-					// so lock to keep from racing the main thread
-					synchronized (ParallelConfPartitionFunction.this) {
+					// update pfunc state
+					numConfsEvaluated++;
+					values.qstar = values.qstar.add(energyWeight);
+					values.qprime = updateQprime(econf);
 					
-						// get the boltzmann weight
-						BigDecimal energyWeight = boltzmann.calc(econf.getEnergy());
-						if (energyWeight.compareTo(BigDecimal.ZERO) == 0) {
-							status = Status.NotEnoughFiniteEnergies;
-							return;
-						}
-						
-						// update pfunc state
-						numConfsEvaluated++;
-						values.qstar = values.qstar.add(energyWeight);
-						values.qprime = updateQprime(econf);
-						
-						// report progress if needed
-						if (isReportingProgress) {
-							MemoryUsage heapMem = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
-							System.out.println(String.format("conf: %4d, energy: %.6f, q*: %12e, q': %12e, epsilon: %.6f, time: %10s, heapMem: %.0f%%",
-								numConfsEvaluated, econf.getEnergy(), values.qstar, values.qprime, values.getEffectiveEpsilon(),
-								stopwatch.getTime(2),
-								100f*heapMem.getUsed()/heapMem.getMax()
-							));
-						}
-						
-						// update status if needed
-						if (values.getEffectiveEpsilon() <= targetEpsilon) {
-							status = Status.Estimated;
-						}
+					// report progress if needed
+					if (isReportingProgress) {
+						MemoryUsage heapMem = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+						System.out.println(String.format("conf: %4d, energy: %.6f, q*: %12e, q': %12e, epsilon: %.6f, time: %10s, heapMem: %.0f%%",
+							numConfsEvaluated, econf.getEnergy(), values.qstar, values.qprime, values.getEffectiveEpsilon(),
+							stopwatch.getTime(2),
+							100f*heapMem.getUsed()/heapMem.getMax()
+						));
+					}
+					
+					// report confs if needed
+					if (confListener != null) {
+						confListener.onConf(econf);
+					}
+					
+					// update status if needed
+					if (values.getEffectiveEpsilon() <= targetEpsilon) {
+						status = Status.Estimated;
 					}
 				}
 			});

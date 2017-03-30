@@ -54,7 +54,7 @@ public class ForcefieldKernelCuda extends Kernel implements ForcefieldKernel {
 		precomputed.uploadAsync();
 		
 		// make the args buffer
-		args = getStream().makeByteBuffer(36);
+		args = getStream().makeByteBuffer(40);
 		ByteBuffer argsBuf = args.getHostBuffer();
 		argsBuf.rewind();
 		argsBuf.putInt(0); // set by setSubsetInternal()
@@ -66,6 +66,7 @@ public class ForcefieldKernelCuda extends Kernel implements ForcefieldKernel {
 		argsBuf.put((byte)(ffenergy.getParams().useHElectrostatics ? 1 : 0));
 		argsBuf.put((byte)(ffenergy.getParams().useHVdw ? 1 : 0));
 		argsBuf.put((byte)0); // set by setSubsetInternal()
+		argsBuf.put((byte)(ffenergy.getParams().useEEF1 ? 1 : 0));
 		argsBuf.flip();
 		
 		// set the subset
@@ -134,6 +135,9 @@ public class ForcefieldKernelCuda extends Kernel implements ForcefieldKernel {
 		
 		func.numBlocks = divUp(subset.getNumAtomPairs(), func.blockThreads);
 		
+		// make sure this thread can use the cuda context
+		getStream().getContext().attachCurrentThread();
+		
 		// update kernel args and upload
 		ByteBuffer buf = args.getHostBuffer();
 		buf.putInt(0, subset.getNumAtomPairs());
@@ -157,6 +161,10 @@ public class ForcefieldKernelCuda extends Kernel implements ForcefieldKernel {
 	
 	@Override
 	public void runAsync() {
+		
+		// make sure this thread can use the cuda context
+		getStream().getContext().attachCurrentThread();
+		
 		func.runAsync();
 	}
 	
@@ -179,6 +187,9 @@ public class ForcefieldKernelCuda extends Kernel implements ForcefieldKernel {
 	@Override
 	public void uploadCoordsAsync() {
 		
+		// make sure this thread can use the cuda context
+		getStream().getContext().attachCurrentThread();
+		
 		// tell the forcefield to gather updated coords
 		ffenergy.updateCoords();
 		
@@ -187,6 +198,9 @@ public class ForcefieldKernelCuda extends Kernel implements ForcefieldKernel {
 
 	@Override
 	public double downloadEnergySync() {
+		
+		// make sure this thread can use the cuda context
+		getStream().getContext().attachCurrentThread();
 		
 		energies.downloadSync();
 		DoubleBuffer buf = energies.getHostBuffer();
