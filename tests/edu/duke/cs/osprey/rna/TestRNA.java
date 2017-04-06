@@ -6,7 +6,6 @@ import edu.duke.cs.osprey.control.ConfigFileParser;
 import edu.duke.cs.osprey.control.GMECFinder;
 import org.junit.Test;
 
-import java.util.Arrays;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
@@ -18,6 +17,10 @@ import static org.junit.Assert.assertThat;
  */
 public class TestRNA extends TestBase{
 
+    /**
+     * Note that the stack size might need to be increased.
+     * I ran it with -Xss3000k -dzhou
+     */
     @Test
     public void test1fxlFH() {
 
@@ -33,8 +36,8 @@ public class TestRNA extends TestBase{
         gf.init(cfp);
         ConfSearch.EnergiedConf gmec = gf.calcGMEC().get(0);
 
-        System.out.println(gmec.getEnergy());
-        System.out.println(Arrays.toString(gmec.getAssignments()));
+        assertThat(gmec.getEnergy(), isRelatively(-109.789, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {3, 32, 0, 4, 13}));
     }
 
 }
