@@ -6,6 +6,8 @@ import edu.duke.cs.osprey.control.ConfigFileParser;
 import edu.duke.cs.osprey.control.GMECFinder;
 import org.junit.Test;
 
+import java.util.Arrays;
+
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
@@ -30,6 +32,9 @@ public class TestRNA extends TestBase{
         GMECFinder gf = new GMECFinder();
         gf.init(cfp);
         ConfSearch.EnergiedConf gmec = gf.calcGMEC().get(0);
+
+        System.out.println(gmec.getEnergy());
+        System.out.println(Arrays.toString(gmec.getAssignments()));
     }
 
 }

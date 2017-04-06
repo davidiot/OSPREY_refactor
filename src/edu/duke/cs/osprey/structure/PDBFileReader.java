@@ -153,7 +153,7 @@ public class PDBFileReader {
 		return m;
 	}
 
-	private static void appendNewResidue(KSTermini termini, ArrayList<Integer> filter, Molecule m,
+	private static void appendNewResidue(ResidueTermini termini, ArrayList<Integer> filter, Molecule m,
 			ArrayList<Atom> curResAtoms, ArrayList<double[]> curResCoords, String curResFullName) {
 
 		Residue newRes = new Residue(curResAtoms, curResCoords, curResFullName, m);
