@@ -348,6 +348,34 @@ public class TestBase {
         EnvironmentVars.resTemplates.loadResEntropy("ResEntropy.dat");
 	}
 	
+	protected static void initRNAEnvironment() {
+		// values from default config file
+		EnvironmentVars.setDataDir("dataFiles");
+		
+		// make energy function
+		double shellDistCutoff = Double.POSITIVE_INFINITY;
+		boolean usePoissonBoltzmann = false;
+		EnvironmentVars.curEFcnGenerator = new EnergyFunctionGenerator(makeDefaultFFParams(), shellDistCutoff, usePoissonBoltzmann);
+		
+		// make residue templates
+		EnvironmentVars.resTemplates = new GenericResidueTemplateLibrary(
+				new String[] { "all_amino94.in", "all_aminont94.in", "all_aminoct94.in", "all_rna.in", "all_rna5p.in",
+						"all_rna3p.in", "all_nuc94_and_gr.in" },
+				makeDefaultFFParams());
+		
+		EnvironmentVars.resTemplates.loadTemplateCoords("all_amino_coords.in");
+		EnvironmentVars.resTemplates.loadTemplateCoords("all_rna_coords.in");
+		EnvironmentVars.resTemplates.makeDAminoAcidTemplates();
+		
+		// make rotamers
+		boolean useBackboneDependentRotamers = false;
+		EnvironmentVars.resTemplates.loadRotamerLibrary("LovellRotamer.dat", useBackboneDependentRotamers);
+		EnvironmentVars.resTemplates.loadRotamerLibrary("RNAChiRotamers.dat", useBackboneDependentRotamers);
+		
+		// load residue entropies
+        EnvironmentVars.resTemplates.loadResEntropy("ResEntropy.dat");
+	}
+	
 	protected static SearchProblem makeSearchProblem(EnergyMatrixConfig emConfig) {
 		
 		// make the search problem

@@ -11,7 +11,7 @@ import edu.duke.cs.osprey.energy.MultiTermEnergyFunction;
 import edu.duke.cs.osprey.kstar.KSConfigFileParser;
 import edu.duke.cs.osprey.minimization.CCDMinimizer;
 import edu.duke.cs.osprey.parallelism.ThreadParallelism;
-import edu.duke.cs.osprey.tests.RNATestSuite;
+import edu.duke.cs.osprey.tests.RNAPlayground;
 import edu.duke.cs.osprey.tests.UnitTestSuite;
 
 /**
@@ -119,7 +119,7 @@ public class Main {
 			@Override
 			public void run() {
 				// UnitTestSuite.runAllTests();
-				RNATestSuite.runAllTests();
+				RNAPlayground.runAllTests();
 			}
 		});
 

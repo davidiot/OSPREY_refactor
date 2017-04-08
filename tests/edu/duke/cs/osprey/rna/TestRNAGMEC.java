@@ -11,11 +11,11 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 /**
- * Unit tests pertaining to RNA functionality
+ * Unit tests pertaining to RNA GMEC functionality
  *
- * @author dz54
+ * @author dzhou
  */
-public class TestRNA extends TestBase{
+public class TestRNAGMEC extends TestBase{
 
     /**
      * Note that the stack size might need to be increased.

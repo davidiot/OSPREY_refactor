@@ -20,7 +20,7 @@ import edu.duke.cs.osprey.structure.PDBFileWriter;
 import edu.duke.cs.osprey.structure.Residue;
 import edu.duke.cs.osprey.tools.Protractor;
 
-public class RNATestSuite {
+public class RNAPlayground {
 	public static void runAllTests() {
 		testPuckerDetection();
 		test1cslHEnergy();
@@ -34,7 +34,7 @@ public class RNATestSuite {
 	}
 	
 	public static void testPuckerDetection() {
-		Molecule m1 = PDBFileReader.readPDBFile("354_unspecified_pucker.pdb");
+		Molecule m1 = PDBFileReader.readPDBFile("354dH_unspecified_pucker.pdb");
 		Molecule m2 = PDBFileReader.readPDBFile("354dH.pdb");
 		PDBFileWriter.writePDBFile(m1, "testResults/354dH1.pdb");
 		PDBFileWriter.writePDBFile(m2, "testResults/354dH2.pdb");
