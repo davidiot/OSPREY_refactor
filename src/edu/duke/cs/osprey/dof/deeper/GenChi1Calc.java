@@ -42,11 +42,6 @@ public class GenChi1Calc {
 				return Double.NaN;
 			}
             
-            if(lastCoords==null || NCoords==null || CACoords==null | CBCoords==null){
-                //not a protein residue.  Doesn't have gen chi1
-                return Double.NaN;
-            }
-            
             
             //coordinates defining dihedral
             double dihCoords[][] = new double[][] {NCoords,CACoords,CBCoords,lastCoords};
