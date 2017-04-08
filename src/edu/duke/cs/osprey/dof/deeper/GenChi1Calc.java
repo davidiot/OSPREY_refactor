@@ -55,8 +55,8 @@ public class GenChi1Calc {
     public static void setGenChi1(Residue res, double ang){
         //set the residue to have the specified gen chi1 (in degrees)
 
-        if( (!HardCodedResidueInfo.hasAminoAcidBB(res)) 
-        		|| !(HardCodedResidueInfo.hasNucleicAcidBB(res)) // DZ: NA BBs are fine now
+		if (!(HardCodedResidueInfo.hasAminoAcidBB(res) || 
+				HardCodedResidueInfo.hasNucleicAcidBB(res)) // DZ: NA BBs are fine now
                 || res.template.name.equalsIgnoreCase("GLY")
                 || res.template.name.equalsIgnoreCase("PRO") ){
             //Glycine doesn't have a generalized chi1, 
