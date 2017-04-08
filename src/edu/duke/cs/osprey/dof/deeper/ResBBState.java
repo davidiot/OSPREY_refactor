@@ -114,6 +114,9 @@ public class ResBBState implements Serializable {
     
     
     public ResBBState(ResBBState state2){//deep copy
+    	
+    	type = state2.type;
+    	
         if(state2.CBCoord!=null)
             CBCoord = state2.CBCoord.clone();
         

@@ -100,12 +100,13 @@ public class HardCodedResidueInfo {
 		// do we currently support mutations to the given amino-acid type?
 		if (templ.templateRes.coords == null) {
 			return false;
-		} else
+		} else {
 			return hasAminoAcidBB(templ.templateRes) || hasNucleicAcidBB(templ.templateRes);
-		// can currently mutate to any amino acid (D or L, naturally
-		// occurring sidechain or not) whose sidechain attaches only
-		// to CA and for which we have template coords
-		// DZ: now supports nucleic acids as well
+			// can currently mutate to any amino acid (D or L, naturally
+			// occurring sidechain or not) whose sidechain attaches only
+			// to CA and for which we have template coords
+			// DZ: now supports nucleic acids as well
+		}
 	}
 
 	public static ArrayList<String> listBBAtomsForMut(ResidueTemplate newTemplate, ResidueTemplate oldTemplate) {
