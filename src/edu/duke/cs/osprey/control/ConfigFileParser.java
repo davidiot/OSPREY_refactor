@@ -30,6 +30,8 @@ public class ConfigFileParser {
     
     protected ParamSet params = new ParamSet();
     
+    private boolean rna = true; // DZ: for debugging; set this to false if you are not using RNA.
+    
     public ConfigFileParser(String[] args){
         //parse all config files into params
         
@@ -375,15 +377,19 @@ public class ConfigFileParser {
         resTemplates.loadTemplateCoords("all_amino_coords.in");
         
         // DZ: RNA coordinates
-        resTemplates.loadTemplateCoords("all_rna_coords.in");
+        if (rna) {
+        	resTemplates.loadTemplateCoords("all_rna_coords.in");
+        }
         
         //load rotamer libraries; the names of residues as they appear in the rotamer library file will be matched to templates
         boolean dunbrackRots = params.getBool("UseDunbrackRotamers");
         // PGC 2015: Always load the Lovell Rotamer Library.
     	
      // DZ: RNA Rotamer Library
-        resTemplates.loadRotamerLibrary(params.getValue("RNAROTFILE", "RNAChiRotamers.dat"), false);
-        
+		if (rna) {
+			resTemplates.loadRotamerLibrary(params.getValue("RNAROTFILE", "RNAChiRotamers.dat"), false);
+		}
+		
         resTemplates.loadRotamerLibrary(params.getValue("ROTFILE"), false);//see below; also gRotFile0 etc
         if(dunbrackRots){ // Use the dunbrack rotamer library
         	resTemplates.loadRotamerLibrary(params.getValue("DUNBRACKROTFILE"), true);//see below; also gRotFile0 etc
@@ -497,7 +503,6 @@ public class ConfigFileParser {
                         System.exit(0);
         }
         
-        boolean rna = true; // DZ: for debugging; set this to false if you are not using RNA.
         if (rna && forcefld == ForcefieldParams.FORCEFIELD.AMBER) {
 			return new String[] { aaFilename, aaNTFilename, aaCTFilename, nucFilename, nuc5pFilename, nuc3pFilename, grFilename };
 		} else
