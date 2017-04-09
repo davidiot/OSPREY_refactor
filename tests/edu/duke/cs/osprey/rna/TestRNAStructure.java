@@ -8,6 +8,8 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
+import edu.duke.cs.osprey.control.EnvironmentVars;
+import edu.duke.cs.osprey.energy.EnergyFunction;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -27,7 +29,11 @@ public class TestRNAStructure extends TestBase {
     public static void before() {
     	initRNAEnvironment();
     }
-    
+
+	/**
+	 * Tests pucker detection functionality.
+	 * Loading a file with unspecified puckers will automatically have them encoded.
+	 */
 	@Test
 	public void testPuckerDetection() {
 		
@@ -48,8 +54,19 @@ public class TestRNAStructure extends TestBase {
 
 			assertThat(m1String, is(m2String));
 		} catch (IOException e) {
-			throw new RuntimeException("FILES DIFFERED");
+			throw new RuntimeException("IO EXCEPTION COMPARING FILES");
 		}
 	}
-	
+
+	/**
+	 * If the energies are ridiculous, chances are that bonds are not being properly formed.
+	 */
+	@Test
+	public void test1cslHEnergy() {
+		String folder = "test/1CSLH.junit/";
+		Molecule m = PDBFileReader.readPDBFile(folder + "1cslH.pdb");
+		EnergyFunction fullEFunc = EnvironmentVars.curEFcnGenerator.fullMolecEnergy(m);
+		assertThat(fullEFunc.getEnergy(), isRelatively(-1011.018, 1e-3));
+	}
+
 }
