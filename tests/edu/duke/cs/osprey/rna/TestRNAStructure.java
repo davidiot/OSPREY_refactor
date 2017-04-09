@@ -78,7 +78,7 @@ public class TestRNAStructure extends TestBase {
             for (String bbAtom : HardCodedResidueInfo.possibleNABBAtoms) {
                 double[] c1 = res1.getCoordsByAtomName(bbAtom);
                 double[] c2 = res2.getCoordsByAtomName(bbAtom);
-                if (c1 != null && c2 != null && !res1.getPDBResNumber().equals("96")) {
+                if (c1 != null && c2 != null) {
                     for (int i = 0; i < c1.length; i++) {
                         assertThat(c1[i], isRelatively(c2[i], 1e-9));
                     }
@@ -86,9 +86,6 @@ public class TestRNAStructure extends TestBase {
             }
 
             SidechainIdealizer.idealizeSidechain(res1);
-            GenChi1Calc.setGenChi1(res1, dependentGenChi1.get(resNum));
-            assertThat(GenChi1Calc.getGenChi1(res1), isRelatively(dependentGenChi1.get(resNum), 1e-9));
-
 		}
 
 		PDBFileWriter.writePDBFile(m, folder + "testResults/354dHswitch.pdb");

@@ -75,8 +75,8 @@ public class GenChi1Calc {
 		// pivotAtom will be CB for amino acids, N9 or N1 for nucleic acids.
 		String pivotAtom = HardCodedResidueInfo.hasNucleicAcidBB(res)
 				? HardCodedResidueInfo.isPyrimidine(res.template.name)
-						? "N9" 
-						: "N1"
+						? "N1"
+						: "N9"
 				: "CB";
 		
 		DihedralRotation dihRot = new DihedralRotation(CACoords, CBCoords, genChi1Change);

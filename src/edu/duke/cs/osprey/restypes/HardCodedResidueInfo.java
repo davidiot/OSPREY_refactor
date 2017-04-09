@@ -171,12 +171,11 @@ public class HardCodedResidueInfo {
 	}
 
 	public static double[] findPivotCoord(Residue res) {
-		for (Atom at : res.atoms) {
-			if (isNAPivot(at)) {
-				return res.getCoordsByAtomName(at.name);
-			}
-		}
-		return null;
+	    return HardCodedResidueInfo.isPyrimidine(res.template.name)
+                ? res.getCoordsByAtomName("N1" )
+                : HardCodedResidueInfo.isPurine(res.template.name)
+                    ? res.getCoordsByAtomName("N9")
+                    : null;
 	}
 
 	public static boolean isPyrimidine(String resName) {

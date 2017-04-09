@@ -112,7 +112,14 @@ public class ResBBState implements Serializable {
     
     public void putInState(Residue res){
         //Put res in the conformational state defined by the backbone coordinates recorded here
-        
+        if (!HardCodedResidueInfo.hasAminoAcidBB(res) && type == BBType.AMINO_ACID) {
+            throw new UnsupportedOperationException("tried to put an amino acid residue into a non-AA state");
+        }
+
+        if (!HardCodedResidueInfo.hasNucleicAcidBB(res) && type == BBType.NUCLEIC_ACID) {
+            throw new UnsupportedOperationException("tried to put an nucleic acid residue into a non-NA state");
+        }
+
         Set<String> BBAtomNames = coords.keySet();
         
         //If there is a CB, move the sidechain and HA as a rigid body including CA
