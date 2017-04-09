@@ -1,6 +1,10 @@
 package edu.duke.cs.osprey;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,6 +27,9 @@ import edu.duke.cs.osprey.tools.HashCalculator;
 import edu.duke.cs.osprey.tools.Protractor;
 import edu.duke.cs.osprey.tupexp.LUTESettings;
 
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
+
 public class TestBase {
 	
 	private static final double DefaultEpsilon = 1e-14;
@@ -32,8 +39,22 @@ public class TestBase {
 	static {
 		m_energyMatrixCache = new HashMap<>();
 	}
-	
-	public static class EnergyMatrixConfig {
+
+    protected void comparePDB(String m1FileName, String m2FileName) {
+        try {
+            byte[] m1Bytes = Files.readAllBytes(Paths.get(m1FileName));
+            byte[] m2Bytes = Files.readAllBytes(Paths.get(m2FileName));
+
+            String m1String = new String(m1Bytes, StandardCharsets.UTF_8);
+            String m2String = new String(m2Bytes, StandardCharsets.UTF_8);
+
+            assertThat(m1String, is(m2String));
+        } catch (IOException e) {
+            throw new RuntimeException("IO EXCEPTION COMPARING FILES");
+        }
+    }
+
+    public static class EnergyMatrixConfig {
 		
 		public String pdbPath;
 		public int numFlexible;

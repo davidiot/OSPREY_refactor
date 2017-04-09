@@ -180,13 +180,18 @@ public class HardCodedResidueInfo {
 	}
 
 	public static boolean isPyrimidine(String resName) {
-		return resName.equalsIgnoreCase("ru3") || resName.equalsIgnoreCase("ru2") || resName.equalsIgnoreCase("rt3")
-				|| resName.equalsIgnoreCase("rt2") || resName.equalsIgnoreCase("rc3")
+		return resName.equalsIgnoreCase("ru3")
+				|| resName.equalsIgnoreCase("ru2")
+				|| resName.equalsIgnoreCase("rt3")
+				|| resName.equalsIgnoreCase("rt2")
+				|| resName.equalsIgnoreCase("rc3")
 				|| resName.equalsIgnoreCase("rc2");
 	}
 
 	public static boolean isPurine(String resName) {
-		return resName.equalsIgnoreCase("ra3") || resName.equalsIgnoreCase("ra2") || resName.equalsIgnoreCase("rg3")
+		return resName.equalsIgnoreCase("ra3")
+				|| resName.equalsIgnoreCase("ra2")
+				|| resName.equalsIgnoreCase("rg3")
 				|| resName.equalsIgnoreCase("rg2");
 	}
 
@@ -194,7 +199,9 @@ public class HardCodedResidueInfo {
 		// Is the atom next to the C1' carbon? Note that this method assumes
 		// that the atom is not part of the NA backbone. This should return true
 		// for N1 for pyrimidines and N9 for purines
-		if (at.name.equalsIgnoreCase("H1'") || at.name.equalsIgnoreCase("C2'") || at.name.equalsIgnoreCase("O4'")) {
+		if (at.name.equalsIgnoreCase("H1'")
+                || at.name.equalsIgnoreCase("C2'")
+                || at.name.equalsIgnoreCase("O4'")) {
 			return false;
 		}
 		for (Atom neighbors : at.bonds) {
@@ -216,7 +223,8 @@ public class HardCodedResidueInfo {
 			double[] C3 = res.getCoordsByAtomName("C3'");
 			double[] O3 = res.getCoordsByAtomName("O3'");
 			double delta = Protractor.measureDihedral(new double[][] { C5, C4, C3, O3 });
-			// The following values came from Swati's thesis, which can be found here: /usr/project/dlab/Users/swati/Thesis/Document/dissertation_0420_2.pdf
+			// The following values came from Swati's thesis, which can be found here:
+            // /usr/project/dlab/Users/swati/Thesis/Document/dissertation_0420_2.pdf
 			if (delta >= 60 && delta <= 105) { // C3' endo
 				res.fullName = res.fullName
 						.replace("  U", "RU3")

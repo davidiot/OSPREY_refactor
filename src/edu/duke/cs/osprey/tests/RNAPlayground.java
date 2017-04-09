@@ -26,7 +26,6 @@ public class RNAPlayground {
 		testDihedral();
 		measureAngles();
 		testProteinSwitch();
-		testRNASwitch();
 		testBackrub();
 		testRingPucker();
 	}
@@ -75,25 +74,6 @@ public class RNAPlayground {
 		PartialStructureSwitch switcheroo = new PartialStructureSwitch(m.residues, altConfPDBFiles);
 		switcheroo.doPerturbationMotion(1);
 		PDBFileWriter.writePDBFile(m, "testResults/1CC8switch.pdb");
-	}
-
-	public static void testRNASwitch() {
-		Molecule m = PDBFileReader.readPDBFile("354dH.pdb");
-		ArrayList<String> altConfPDBFiles = new ArrayList<String>();
-		altConfPDBFiles.add("1cslH.renum.pdb");
-		ArrayList<Double> dependentGenChi1 = new ArrayList<>();
-		for (Residue res : m.residues) {
-			dependentGenChi1.add(GenChi1Calc.getGenChi1(res));
-			// record gen chi1 so we can restore it later
-		}
-		PartialStructureSwitch switcheroo = new PartialStructureSwitch(m.residues, altConfPDBFiles);
-		switcheroo.doPerturbationMotion(1);
-		for (int resNum = 0; resNum < m.residues.size(); resNum++) {
-			Residue res = m.residues.get(resNum);
-			SidechainIdealizer.idealizeSidechain(res);
-			GenChi1Calc.setGenChi1(res, dependentGenChi1.get(resNum));
-		}
-		PDBFileWriter.writePDBFile(m, "testResults/354dHswitch.pdb");
 	}
 
 	public static void measureAngles() {

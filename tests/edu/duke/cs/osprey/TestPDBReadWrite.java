@@ -30,10 +30,10 @@ public class TestPDBReadWrite extends TestBase {
     
     @BeforeClass
     public static void before() {
-            initDefaultEnvironment();
+        initDefaultEnvironment();
     }
-    
-    
+
+
     @Test
     public void testPDBReadWrite(){
         
@@ -44,17 +44,8 @@ public class TestPDBReadWrite extends TestBase {
         Molecule m = PDBFileReader.readPDBFile(origFileName, null);
         EnvironmentVars.assignTemplatesToStruct = true;//return to normal in case we do other stuff later
         PDBFileWriter.writePDBFile(m, copiedFileName);
-        
-        try {
-            byte[] origBytes = Files.readAllBytes(Paths.get(origFileName));
-            byte[] copiedBytes = Files.readAllBytes(Paths.get(copiedFileName));
-            
-            String origString = new String(origBytes, StandardCharsets.UTF_8);
-            String copiedString = new String(copiedBytes, StandardCharsets.UTF_8);
-            
-            assertThat(origString, is(copiedString));
-        }
-        catch(IOException e){throw new RuntimeException("IO EXCEPTION COMPARING FILES");}
+
+        comparePDB(origFileName, copiedFileName);
     }
     
     
