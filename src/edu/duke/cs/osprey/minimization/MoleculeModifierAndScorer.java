@@ -145,8 +145,9 @@ public class MoleculeModifierAndScorer implements ObjectiveFunction {
             // AAO 2016: this code was written for AAs, specifically anything
             // in all_amino_coords.in and not for generic non-AA residues. skipping this
             // step for non AAs (for now).
+            // DZ 2017: nuclic acids seem to be okay now too
             Residue res = cSpace.posFlex.get(posNum).res;
-            if(HardCodedResidueInfo.hasAminoAcidBB(res) && !res.fullName.startsWith("FOL")) {
+            if(HardCodedResidueInfo.isMutable(res)) {
                 
                 ResidueTypeDOF mutDOF = cSpace.mutDOFs.get(posNum);
                 

@@ -96,6 +96,12 @@ public class HardCodedResidueInfo {
 		return res;
 	}
 
+	// DZ: replacing
+	public static boolean isMutable(Residue res) {
+	    return (hasAminoAcidBB(res) || hasNucleicAcidBB(res))
+                && !res.fullName.startsWith("FOL");
+    }
+
 	// Here's some stuff we need to mutate amino acid protein residues
 	public static boolean canMutateTo(ResidueTemplate templ) {
 		// do we currently support mutations to the given amino-acid type?
