@@ -62,6 +62,18 @@ public class TestRNAStructure extends TestBase {
 	}
 
     /**
+     * Tests proper bonding and energy
+     * Note: If the energies are ridiculous, chances are that bonds are not being properly formed.
+     */
+    @Test
+    public void test1fxlFHEnergy() {
+        String folder = "test/1fxlFH.junit/";
+        Molecule m = PDBFileReader.readPDBFile(folder + "1fxlFH.pdb");
+        EnergyFunction fullEFunc = EnvironmentVars.curEFcnGenerator.fullMolecEnergy(m);
+        assertThat(fullEFunc.getEnergy(), isRelatively(-2124.018, 1e-3));
+    }
+
+    /**
      * Tests full and partial structure switches
      * Note: The HO3' hydrogens do not move because they do not exist in the switched 1cslH structure
      */
