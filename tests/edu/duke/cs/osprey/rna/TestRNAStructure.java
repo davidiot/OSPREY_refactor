@@ -132,7 +132,8 @@ public class TestRNAStructure extends TestBase {
     }
 
     /**
-     *
+     * Tests the ring pucker perturbation
+     * @see RingPucker
      */
     @Test
     public void testRingPucker() {

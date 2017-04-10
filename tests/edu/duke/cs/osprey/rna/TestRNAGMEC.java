@@ -18,11 +18,36 @@ import static org.junit.Assert.assertThat;
 public class TestRNAGMEC extends TestBase{
 
     /**
+     * Find a GMEC for an RNA double strand with some base flips
+     * The four mutable residues are right between the flipped bases
+     * This one will take a while to run
+     */
+    @Test
+    public void test1cslHGMEC() {
+
+        String folder = "test/1CSLH.junit/";
+
+        String[] args = new String[]{"-c", folder + "KStar.cfg", "findGMEC",
+                folder + "System.cfg", folder + "DEE.cfg"};
+
+        ConfigFileParser cfp = new ConfigFileParser(args);//args 1, 3+ are configuration files
+        cfp.loadData();
+
+        GMECFinder gf = new GMECFinder();
+        gf.init(cfp);
+        ConfSearch.EnergiedConf gmec = gf.calcGMEC().get(0);
+
+        assertThat(gmec.getEnergy(), isRelatively(-132.342, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {4, 15, 35, 3}));
+    }
+
+    /**
+     * Find a GMEC when both RNA and protein are involved
      * Note that the stack size might need to be increased.
      * I ran it with -Xss3000k -dzhou
      */
     @Test
-    public void test1fxlFH() {
+    public void test1fxlFHGMEC() {
 
         String folder = "test/1fxlFH.junit/";
 
