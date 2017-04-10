@@ -1,12 +1,12 @@
 package edu.duke.cs.osprey.rna;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import edu.duke.cs.osprey.control.EnvironmentVars;
+import edu.duke.cs.osprey.dof.ResidueTypeDOF;
 import edu.duke.cs.osprey.dof.deeper.GenChi1Calc;
 import edu.duke.cs.osprey.dof.deeper.SidechainIdealizer;
 import edu.duke.cs.osprey.dof.deeper.perts.PartialStructureSwitch;
@@ -47,7 +47,8 @@ public class TestRNAStructure extends TestBase {
 	}
 
 	/**
-	 * If the energies are ridiculous, chances are that bonds are not being properly formed.
+     * Tests proper bonding and energy
+	 * Note: If the energies are ridiculous, chances are that bonds are not being properly formed.
 	 */
 	@Test
 	public void test1cslHEnergy() {
@@ -58,16 +59,15 @@ public class TestRNAStructure extends TestBase {
 	}
 
 	@Test
+    /**
+     * Tests full and partial structure switches
+     * Note: The HO3' hydrogens do not move because they do not exist in the switched 1cslH structure
+     */
 	public void testRNASwitch() {
 		String folder = "test/354dH.junit/";
 		Molecule m = PDBFileReader.readPDBFile(folder + "354dH.pdb");
 		ArrayList<String> altConfPDBFiles = new ArrayList<String>();
 		altConfPDBFiles.add(folder + "1cslH.renum.pdb");
-		ArrayList<Double> dependentGenChi1 = new ArrayList<>();
-		for (Residue res : m.residues) {
-			dependentGenChi1.add(GenChi1Calc.getGenChi1(res));
-			// record gen chi1 so we can restore it later
-		}
 		PartialStructureSwitch switcheroo = new PartialStructureSwitch(m.residues, altConfPDBFiles);
 		switcheroo.doPerturbationMotion(1);
 
@@ -84,11 +84,48 @@ public class TestRNAStructure extends TestBase {
                     }
                 }
             }
-
             SidechainIdealizer.idealizeSidechain(res1);
 		}
 
 		PDBFileWriter.writePDBFile(m, folder + "testResults/354dHswitch.pdb");
 	}
+
+    @Test
+    /**
+     * Tests Chi1 angle modification for DEEPer
+     */
+    public void testRNAChi1() {
+        String folder = "test/2OEUH.junit/";
+        Molecule m = PDBFileReader.readPDBFile(folder + "2oeuH.pdb");
+        for (Residue res : m.residues) {
+            double chi1 = GenChi1Calc.getGenChi1(res);
+            GenChi1Calc.setGenChi1(res, chi1 / 2);
+            assertThat(GenChi1Calc.getGenChi1(res), isRelatively(chi1 / 2, 1e-9));
+        }
+        PDBFileWriter.writePDBFile(m, folder + "testResults/2oeuH.chi.pdb");
+    }
+
+    @Test
+    /**
+     * Tests mutations
+     */
+    public void testMutation() {
+        String folder = "test/1CSLH.junit/";
+        Molecule m = PDBFileReader.readPDBFile(folder + "1cslH.pdb");
+
+        Residue res1 = m.getResByPDBResNumber("68");
+        assertEquals(res1.fullName, "RA3 B  68 ");
+        ResidueTypeDOF mutDOF1 = new ResidueTypeDOF(res1);
+        mutDOF1.mutateTo("RG3");
+        assertEquals(res1.fullName, "RG3 B  68 ");
+
+        Residue res2 = m.getResByPDBResNumber("72");
+        assertEquals(res2.fullName, "RU2 B  72 ");
+        ResidueTypeDOF mutDOF2 = new ResidueTypeDOF(res2);
+        mutDOF2.mutateTo("RC2");
+        assertEquals(res2.fullName, "RC2 B  72 ");
+
+        PDBFileWriter.writePDBFile(m, folder + "testResults/1cslH.A68G.U72C.pdb");
+    }
 
 }

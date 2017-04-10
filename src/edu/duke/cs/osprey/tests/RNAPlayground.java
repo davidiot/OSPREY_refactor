@@ -22,7 +22,6 @@ import edu.duke.cs.osprey.tools.Protractor;
 
 public class RNAPlayground {
 	public static void runAllTests() {
-		testMutation();
 		testDihedral();
 		measureAngles();
 		testProteinSwitch();
@@ -89,21 +88,6 @@ public class RNAPlayground {
 			System.out.println(res.fullName + ": " + chi1Measured);
 			System.out.println(res.template.name);
 		}
-	}
-
-	public static void testMutation() {
-		Molecule m = PDBFileReader.readPDBFile("1cslH.pdb");
-		PDBFileWriter.writePDBFile(m, "testResults/1cslH.pdb");
-		String oldS = m.residues.get(5).fullName;
-		ResidueTypeDOF mutDOF = new ResidueTypeDOF(m.residues.get(5)); // Originally
-																		// RG3 A
-																		// 48
-		mutDOF.mutateTo("RU3");
-		String newS = m.residues.get(5).fullName;
-		PDBFileWriter.writePDBFile(m, "testResults/1cslH.G48U.pdb");
-		System.out.println("Mutated " + oldS + " to " + newS);
-		System.out.println("Wrote original file: testResults/1cslH.pdb");
-		System.out.println("Wrote mutation test output: testResults/1cslH.G48U.pdb");
 	}
 
 	public static void testDihedral() {
