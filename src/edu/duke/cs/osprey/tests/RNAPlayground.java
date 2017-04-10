@@ -2,18 +2,10 @@ package edu.duke.cs.osprey.tests;
 
 import java.util.ArrayList;
 
-import edu.duke.cs.osprey.control.EnvironmentVars;
 import edu.duke.cs.osprey.dof.FreeDihedral;
-import edu.duke.cs.osprey.dof.ResidueTypeDOF;
-import edu.duke.cs.osprey.dof.deeper.GenChi1Calc;
-import edu.duke.cs.osprey.dof.deeper.ResBBState;
-import edu.duke.cs.osprey.dof.deeper.SidechainIdealizer;
 import edu.duke.cs.osprey.dof.deeper.perts.Backrub;
 import edu.duke.cs.osprey.dof.deeper.perts.PartialStructureSwitch;
 import edu.duke.cs.osprey.dof.deeper.perts.RingPucker;
-import edu.duke.cs.osprey.energy.EnergyFunction;
-import edu.duke.cs.osprey.restypes.HardCodedResidueInfo;
-import edu.duke.cs.osprey.structure.Atom;
 import edu.duke.cs.osprey.structure.Molecule;
 import edu.duke.cs.osprey.structure.PDBFileReader;
 import edu.duke.cs.osprey.structure.PDBFileWriter;
@@ -26,7 +18,7 @@ public class RNAPlayground {
 		measureAngles();
 		testProteinSwitch();
 		testBackrub();
-		testRingPucker();
+		showRingPucker();
 	}
 
 	public static void testBackrub() {
@@ -51,7 +43,7 @@ public class RNAPlayground {
 		PDBFileWriter.writePDBFile(m2, "testResults/1CC8rub.pdb");
 	}
 
-	public static void testRingPucker() {
+	public static void showRingPucker() {
 		Molecule molecule = PDBFileReader.readPDBFile("354dH.pdb");
 		for (int i : new int[] { -20, -10, 10, 20 }) {
 			Molecule m = PDBFileReader.readPDBFile("354dH.pdb");

@@ -10,9 +10,12 @@ import edu.duke.cs.osprey.dof.ResidueTypeDOF;
 import edu.duke.cs.osprey.dof.deeper.GenChi1Calc;
 import edu.duke.cs.osprey.dof.deeper.SidechainIdealizer;
 import edu.duke.cs.osprey.dof.deeper.perts.PartialStructureSwitch;
+import edu.duke.cs.osprey.dof.deeper.perts.RingPucker;
 import edu.duke.cs.osprey.energy.EnergyFunction;
 import edu.duke.cs.osprey.restypes.HardCodedResidueInfo;
 import edu.duke.cs.osprey.structure.*;
+import edu.duke.cs.osprey.tools.Protractor;
+import edu.duke.cs.osprey.tools.VectorAlgebra;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -58,11 +61,11 @@ public class TestRNAStructure extends TestBase {
 		assertThat(fullEFunc.getEnergy(), isRelatively(-1011.018, 1e-3));
 	}
 
-	@Test
     /**
      * Tests full and partial structure switches
      * Note: The HO3' hydrogens do not move because they do not exist in the switched 1cslH structure
      */
+    @Test
 	public void testRNASwitch() {
 		String folder = "test/354dH.junit/";
 		Molecule m = PDBFileReader.readPDBFile(folder + "354dH.pdb");
@@ -90,10 +93,10 @@ public class TestRNAStructure extends TestBase {
 		PDBFileWriter.writePDBFile(m, folder + "testResults/354dHswitch.pdb");
 	}
 
-    @Test
     /**
      * Tests Chi1 angle modification for DEEPer
      */
+    @Test
     public void testRNAChi1() {
         String folder = "test/2OEUH.junit/";
         Molecule m = PDBFileReader.readPDBFile(folder + "2oeuH.pdb");
@@ -105,10 +108,10 @@ public class TestRNAStructure extends TestBase {
         PDBFileWriter.writePDBFile(m, folder + "testResults/2oeuH.chi.pdb");
     }
 
-    @Test
     /**
      * Tests mutations
      */
+    @Test
     public void testMutation() {
         String folder = "test/1CSLH.junit/";
         Molecule m = PDBFileReader.readPDBFile(folder + "1cslH.pdb");
@@ -126,6 +129,122 @@ public class TestRNAStructure extends TestBase {
         assertEquals(res2.fullName, "RC2 B  72 ");
 
         PDBFileWriter.writePDBFile(m, folder + "testResults/1cslH.A68G.U72C.pdb");
+    }
+
+    /**
+     *
+     */
+    @Test
+    public void testRingPucker() {
+        String folder = "test/1CSLH.junit/";
+        Molecule m = PDBFileReader.readPDBFile(folder + "1cslH.pdb");
+
+        Residue res1 = m.getResByPDBResNumber("68");
+        Residue res2 = m.getResByPDBResNumber("72");
+        ArrayList<Residue> affected1 = new ArrayList<Residue>();
+        ArrayList<Residue> affected2 = new ArrayList<Residue>();
+        affected1.add(res1);
+        affected2.add(res2);
+        RingPucker rp1 = new RingPucker(affected1);
+        RingPucker rp2 = new RingPucker(affected2);
+
+        double[] r1c1 = res1.getCoordsByAtomName("C1'");
+        double[] r1c2 = res1.getCoordsByAtomName("C2'");
+        double[] r1o4 = res1.getCoordsByAtomName("O4'");
+        double[] r2c1 = res2.getCoordsByAtomName("C1'");
+        double[] r2c2 = res2.getCoordsByAtomName("C2'");
+        double[] r2o4 = res2.getCoordsByAtomName("O4'");
+
+        double r1c1c2 = VectorAlgebra.distance(r1c1, 0, r1c2, 0);
+        double r1c1o4 = VectorAlgebra.distance(r1c1, 0, r1o4, 0);
+        double r2c1c2 = VectorAlgebra.distance(r2c1, 0, r2c2, 0);
+        double r2c1o4 = VectorAlgebra.distance(r2c1, 0, r2o4, 0);
+
+        double[] rotationAxis1 = VectorAlgebra.subtract(
+                res1.getCoordsByAtomName("C2'"),
+                res1.getCoordsByAtomName("O4'")
+        );
+
+        double[] c1ToRotationAxis1 = VectorAlgebra.perpendicularComponent(
+                VectorAlgebra.subtract(
+                        res1.getCoordsByAtomName("C1'"),
+                        res1.getCoordsByAtomName("C2'")
+                ),
+                rotationAxis1
+        );
+
+        double[] rotationAxis2 = VectorAlgebra.subtract(
+                res2.getCoordsByAtomName("C2'"),
+                res2.getCoordsByAtomName("O4'")
+        );
+
+        double[] c1ToRotationAxis2 = VectorAlgebra.perpendicularComponent(
+                VectorAlgebra.subtract(
+                        res2.getCoordsByAtomName("C1'"),
+                        res2.getCoordsByAtomName("C2'")
+                ),
+                rotationAxis2
+        );
+
+        for (double i = -5.0; i <= 5.0; i += 0.1) {
+            rp1.doPerturbationMotion(i);
+            assertThat(
+                    VectorAlgebra.distance(
+                            res1.getCoordsByAtomName("C1'"), 0,
+                            res1.getCoordsByAtomName("C2'"), 0
+                    ),
+                    isRelatively(r1c1c2, 1e-9));
+            assertThat(
+                    VectorAlgebra.distance(
+                            res1.getCoordsByAtomName("C1'"), 0,
+                            res1.getCoordsByAtomName("O4'"), 0
+                    ),
+                    isRelatively(r1c1o4, 1e-9));
+            assertThat(
+                    Protractor.getAngleDegrees(
+                            VectorAlgebra.perpendicularComponent(
+                                    VectorAlgebra.subtract(
+                                            res1.getCoordsByAtomName("C1'"),
+                                            res1.getCoordsByAtomName("C2'")
+                                    ),
+                                    rotationAxis1
+                            ),
+                            c1ToRotationAxis1
+                    ),
+                    isRelatively(Math.abs(i), 1e-9));
+            rp1.doPerturbationMotion(-i);
+
+            rp2.doPerturbationMotion(-i);
+            assertThat(
+                    VectorAlgebra.distance(
+                            res2.getCoordsByAtomName("C1'"), 0,
+                            res2.getCoordsByAtomName("C2'"), 0
+                    ),
+                    isRelatively(r2c1c2, 1e-9));
+            assertThat(
+                    VectorAlgebra.distance(
+                            res2.getCoordsByAtomName("C1'"), 0,
+                            res2.getCoordsByAtomName("O4'"), 0
+                    ),
+                    isRelatively(r2c1o4, 1e-9));
+            assertThat(
+                    Protractor.getAngleDegrees(
+                            VectorAlgebra.perpendicularComponent(
+                                    VectorAlgebra.subtract(
+                                            res2.getCoordsByAtomName("C1'"),
+                                            res2.getCoordsByAtomName("C2'")
+                                    ),
+                                    rotationAxis2
+                            ),
+                            c1ToRotationAxis2
+                    ),
+                    isRelatively(Math.abs(i), 1e-9));
+            rp2.doPerturbationMotion(i);
+        }
+
+        rp1.doPerturbationMotion(5);
+        rp2.doPerturbationMotion(-5);
+        PDBFileWriter.writePDBFile(m, folder + "testResults/1cslH.puck.pdb");
     }
 
 }

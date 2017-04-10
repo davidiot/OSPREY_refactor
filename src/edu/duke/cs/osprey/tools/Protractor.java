@@ -19,7 +19,9 @@ import edu.duke.cs.osprey.structure.Residue;
 public class Protractor {
     //Measure angles
     
-    
+    public static double getAngleDegrees(double vec1[], double vec2[]) {
+        return 180. * getAngleRadians(vec1, vec2) / Math.PI;
+    }
 
     public static double getAngleRadians(double vec1[], double vec2[]){//Get the angle, in radians, between two vectors
 
