@@ -72,7 +72,7 @@ public class TestRNAGMEC extends TestBase{
     }
 
     /**
-     * Tests DEEPer with RNA ring puckers
+     * Tests DEEPer with protein and RNA simultaneously.  One backrub and two ring puckers.
      * ran with -Xss10m
      */
     @Test
@@ -83,8 +83,8 @@ public class TestRNAGMEC extends TestBase{
 
         ConfSearch.EnergiedConf gmec = checkGMEC(args);
 
-        assertThat(gmec.getEnergy(), isRelatively(-49.946, 1e-3));
-        assertThat(gmec.getAssignments(), is(new int[] {5, 7, 36, 5}));
+        assertThat(gmec.getEnergy(), isRelatively(-89.596, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {31, 19, 41, 12}));
     }
 
     private ConfSearch.EnergiedConf checkGMEC(String[] args) {

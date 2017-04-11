@@ -1,32 +1,16 @@
 PERTURBATIONS
-4
+2
 BACKRUB
-48 49 50 
+49 50 51 
 1 states
 -2.5 2.5
 RINGPUCKER
 723 
 1 states
 -5.0 5.0
-RINGPUCKER
-724 
-1 states
--5.0 5.0
-RINGPUCKER
-733 
-1 states
--5.0 5.0
 RES
 1 states 
 PERTURBATIONS 1 
-0 
-RES
-1 states 
-PERTURBATIONS 2 
-0 
-RES
-1 states 
-PERTURBATIONS 3 
 0 
 RES
 1 states 
