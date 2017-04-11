@@ -28,12 +28,7 @@ public class TestRNAGMEC extends TestBase{
         String[] args = new String[]{"-c", folder + "KStar.cfg", "findGMEC",
                 folder + "System.cfg", folder + "DEE.cfg"};
 
-        ConfigFileParser cfp = new ConfigFileParser(args);//args 1, 3+ are configuration files
-        cfp.loadData();
-
-        GMECFinder gf = new GMECFinder();
-        gf.init(cfp);
-        ConfSearch.EnergiedConf gmec = gf.calcGMEC().get(0);
+        ConfSearch.EnergiedConf gmec = checkGMEC(args);
 
         assertThat(gmec.getEnergy(), isRelatively(-40.963, 1e-3));
         // DZ: it looks like several assignments are pretty close in energy.
@@ -53,16 +48,35 @@ public class TestRNAGMEC extends TestBase{
         String[] args = new String[]{"-c", folder + "KStar.cfg", "findGMEC",
                 folder + "System.cfg", folder + "DEE.cfg"};
 
-        ConfigFileParser cfp = new ConfigFileParser(args);//args 1, 3+ are configuration files
-        cfp.loadData();
-
-        GMECFinder gf = new GMECFinder();
-        gf.init(cfp);
-        ConfSearch.EnergiedConf gmec = gf.calcGMEC().get(0);
+        ConfSearch.EnergiedConf gmec = checkGMEC(args);
 
         assertThat(gmec.getEnergy(), isRelatively(-120.530, 1e-3));
         // DZ: it looks like several assignments are pretty close in energy.
         // assertThat(gmec.getAssignments(), is(new int[] {9, 32, 0, 13, 13}));
     }
 
+    /**
+     * Tests DEEPer with RNA ring puckers
+     * ran with -Xss10m
+     */
+    @Test
+    public void test3P49FHDEEPer(){
+        String folder = "test/3P49FH.deeper.junit/";
+        String[] args = new String[]{"-c", folder + "KStar.cfg", "findGMEC",
+                folder + "System.cfg", folder + "DEE.cfg"};
+
+        ConfSearch.EnergiedConf gmec = checkGMEC(args);
+
+        assertThat(gmec.getEnergy(), isRelatively(-49.946, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {5, 7, 36, 5}));
+    }
+
+    private ConfSearch.EnergiedConf checkGMEC(String[] args) {
+        ConfigFileParser cfp = new ConfigFileParser(args);//args 1, 3+ are configuration files
+        cfp.loadData();
+
+        GMECFinder gf = new GMECFinder();
+        gf.init(cfp);
+        return gf.calcGMEC().get(0);
+    }
 }

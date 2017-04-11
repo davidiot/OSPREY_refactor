@@ -24,6 +24,7 @@ import edu.duke.cs.osprey.dof.ResidueTypeDOF;
 import edu.duke.cs.osprey.dof.StrandRotation;
 import edu.duke.cs.osprey.dof.StrandTranslation;
 import edu.duke.cs.osprey.dof.deeper.perts.Backrub;
+import edu.duke.cs.osprey.dof.deeper.perts.RingPucker;
 import edu.duke.cs.osprey.dof.deeper.perts.Shear;
 import edu.duke.cs.osprey.energy.EnergyFunction;
 import edu.duke.cs.osprey.restypes.HardCodedResidueInfo;
@@ -336,6 +337,10 @@ public class MoleculeModifierAndScorer implements ObjectiveFunction {
             return 0.125;
         else if(curDOF instanceof Backrub)
             return 0.125;
+        // DZ: using the same step size for shears and backrubs for now.
+        else if (curDOF instanceof RingPucker) {
+            return 0.125;
+        }
         else if(curDOF instanceof BBFreeDOF)
             return 0.05;
         else

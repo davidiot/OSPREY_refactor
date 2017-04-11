@@ -26,7 +26,7 @@ public class PerturbationSelector {
     //parameters needed
     String startingPertFile; 
     boolean onlyStarting;
-    double maxShearParam, maxBackrubParam;//upper limit on these (by default) single-interval
+    double maxShearParam, maxBackrubParam, maxPuckerParam;//upper limit on these (by default) single-interval
     //perturbation parameters.  We also allow this value in the negative direction
     boolean selectLCAs;
     boolean doRamaCheck;//Check if proposed perturbation states are Ramachandran allowed
@@ -44,7 +44,7 @@ public class PerturbationSelector {
     ArrayList<TreeSet<String>> resMovedByPert;//for each perturbation, the set of residues
     //whose conformations depend on its parameter value
     
-    ArrayList<double[]> defaultLCAIntervals, defaultShearIntervals, defaultBackrubIntervals;
+    ArrayList<double[]> defaultLCAIntervals, defaultShearIntervals, defaultBackrubIntervals, defaultPuckerIntervals;
     
     int failingPertIndex = -1;//when we are trying combinations of perturbations for a residue,
     //a value other than -1 means perturbation # failingPertIndex could not be applied
@@ -53,13 +53,14 @@ public class PerturbationSelector {
     
     
     public PerturbationSelector(String startingPertFile, boolean onlyStarting, 
-            double maxShearParam, double maxBackrubParam, boolean selectLCAs, 
+            double maxShearParam, double maxBackrubParam, double maxPuckerParam, boolean selectLCAs,
             ArrayList<String> flexibleRes, String PDBFile, ResidueTermini termini, boolean doRamaCheck) {
         
         this.startingPertFile = startingPertFile;
         this.onlyStarting = onlyStarting;
         this.maxShearParam = maxShearParam;
         this.maxBackrubParam = maxBackrubParam;
+        this.maxPuckerParam = maxPuckerParam;
         this.selectLCAs = selectLCAs;
         this.flexibleRes = flexibleRes;
         
@@ -333,6 +334,10 @@ public class PerturbationSelector {
         
         defaultBackrubIntervals = new ArrayList<>();
         defaultBackrubIntervals.add(new double[] {-maxBackrubParam,maxBackrubParam});
+
+        defaultPuckerIntervals = new ArrayList<>();
+        defaultPuckerIntervals.add(new double[] {-maxPuckerParam, maxPuckerParam});
+
     }
     
     
@@ -344,9 +349,9 @@ public class PerturbationSelector {
 
         //get lists of consecutive residue numbers that can be used to
         //make perturbations
-        ArrayList<ArrayList<String>> consecTriplesBR = consecutiveFlexibleRes(3,"BACKRUB");
-        ArrayList<ArrayList<String>> consecTriplesLCA = consecutiveFlexibleRes(3,"LOOP CLOSURE ADJUSTMENT");
-        ArrayList<ArrayList<String>> consecQuads = consecutiveFlexibleRes(4,"SHEAR");
+        ArrayList<ArrayList<String>> consecTriplesBR = consecutiveFlexibleAARes(3,"BACKRUB");
+        ArrayList<ArrayList<String>> consecTriplesLCA = consecutiveFlexibleAARes(3,"LOOP CLOSURE ADJUSTMENT");
+        ArrayList<ArrayList<String>> consecQuads = consecutiveFlexibleAARes(4,"SHEAR");
 
         if(selectLCAs){
             //start with these because they're discrete but make lots of states
@@ -374,11 +379,23 @@ public class PerturbationSelector {
             ps.additionalInfo.add(null);
         }
 
+        // DZ: autogenerate pucker perturbations
+        for (String resString : flexibleRes) {
+            if (HardCodedResidueInfo.hasNucleicAcidBB(m.getResByPDBResNumber(resString))) {
+                ps.pertTypes.add("RINGPUCKER");
+                ArrayList<String> resNum = new ArrayList<String>();
+                resNum.add(resString);
+                ps.resNums.add(resNum);
+                ps.pertIntervals.add(defaultPuckerIntervals);
+                ps.additionalInfo.add(null);
+            }
+        }
+
         //partial structure switches must be put in by startingPertFile
     }
-    
-    
-    ArrayList<ArrayList<String>> consecutiveFlexibleRes(int resCount, String pertType){
+
+    // DZ: All nucleic acids will fail these checks, so we're good here.
+    ArrayList<ArrayList<String>> consecutiveFlexibleAARes(int resCount, String pertType){
         //Return subsets of the flexibleRes that are resCount consecutive residues
         //we'll also screen them based on the type of perturbation we want to put here
         

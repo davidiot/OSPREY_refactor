@@ -87,6 +87,7 @@ public class ConfigFileParser {
                 params.getBool("onlyStartingPerturbations"),
                 params.getDouble("maxShearParam"),
                 params.getDouble("maxBackrubParam"),
+                params.getDouble("maxPuckerParam"),
                 params.getBool("selectLCAs"),
                 getFlexRes(), 
                 params.getValue("PDBNAME"),

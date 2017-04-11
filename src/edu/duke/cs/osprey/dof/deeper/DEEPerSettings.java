@@ -35,6 +35,7 @@ public class DEEPerSettings implements Serializable {
     boolean onlyStarting;
     double maxShearParam;
     double maxBackrubParam;
+    double maxPuckerParam;
     boolean selectLCAs;
     boolean doRamaCheck;
     //We will need the following basic information about the design system
@@ -50,7 +51,7 @@ public class DEEPerSettings implements Serializable {
     
     public DEEPerSettings(boolean doPerturbations, String pertFileName, 
             boolean selectPerturbations, String startingPertFile, boolean onlyStarting, 
-            double maxShearParam, double maxBackrubParam, boolean selectLCAs, 
+            double maxShearParam, double maxBackrubParam, double maxPuckerParam, boolean selectLCAs,
             ArrayList<String> flexibleRes, String PDBFile, boolean doRamaCheck) {
         
         this.doPerturbations = doPerturbations;
@@ -60,6 +61,7 @@ public class DEEPerSettings implements Serializable {
         this.onlyStarting = onlyStarting;
         this.maxShearParam = maxShearParam;
         this.maxBackrubParam = maxBackrubParam;
+        this.maxPuckerParam = maxPuckerParam;
         this.selectLCAs = selectLCAs;
         this.flexibleRes = flexibleRes;
         this.PDBFile = PDBFile;
@@ -85,7 +87,7 @@ public class DEEPerSettings implements Serializable {
                         + " but not supposed to select perturbations");
             
             PerturbationSelector sele = new PerturbationSelector(startingPertFile, onlyStarting, 
-                    maxShearParam, maxBackrubParam, selectLCAs, flexibleRes, PDBFile, termini, doRamaCheck);
+                    maxShearParam, maxBackrubParam, maxPuckerParam, selectLCAs, flexibleRes, PDBFile, termini, doRamaCheck);
             
             PertSet ps = sele.selectPerturbations(termini);
             ps.writePertFile(pertFileName);
@@ -121,7 +123,7 @@ public class DEEPerSettings implements Serializable {
     public DEEPerSettings makeDiscreteVersion(){
         //make a version of these settings with continuous intervals changed to discrete points
         DEEPerSettings discrSettings = new DEEPerSettings(doPerturbations, pertFileName+".DISCR", 
-            selectPerturbations, startingPertFile, onlyStarting, 0, 0, 
+            selectPerturbations, startingPertFile, onlyStarting, 0, 0, 0,
             selectLCAs, flexibleRes, PDBFile, doRamaCheck);
         
         if(perts==null)

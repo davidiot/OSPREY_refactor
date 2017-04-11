@@ -137,6 +137,7 @@ public class MSConfigFileParser extends ConfigFileParser {
 				params.getBool("onlyStartingPerturbations"),
 				params.getDouble("maxShearParam"),
 				params.getDouble("maxBackrubParam"),
+				params.getDouble("maxPuckerParam"),
 				params.getBool("selectLCAs"),
 				sMutRes,
 				params.getValue("PDBNAME"),

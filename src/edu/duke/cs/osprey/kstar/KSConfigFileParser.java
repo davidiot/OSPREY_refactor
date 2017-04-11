@@ -131,6 +131,7 @@ public class KSConfigFileParser extends ConfigFileParser implements Serializable
 				params.getBool("onlyStartingPerturbations"),
 				params.getDouble("maxShearParam"),
 				params.getDouble("maxBackrubParam"),
+				params.getDouble("maxPuckerParam"),
 				params.getBool("selectLCAs"),
 				flexRes,
 				params.getValue("PDBNAME"),
