@@ -30,8 +30,8 @@ public class TestRNAGMEC extends TestBase{
 
         ConfSearch.EnergiedConf gmec = checkGMEC(args);
 
-        assertThat(gmec.getEnergy(), isRelatively(-51.632, 1e-3));
-        assertThat(gmec.getAssignments(), is(new int[] {0, 35, 19, 0, 0}));
+        assertThat(gmec.getEnergy(), isRelatively(-58.535, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {0, 0, 21, 0}));
     }
 
     /**
