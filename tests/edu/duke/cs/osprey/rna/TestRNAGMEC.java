@@ -56,6 +56,23 @@ public class TestRNAGMEC extends TestBase{
     }
 
     /**
+     * Tests GMEC with protein and RNA simultaneously.
+     * Same as the DEEPer configuration only we do not allow perturbations
+     * ran with -Xss10m
+     */
+    @Test
+    public void test3P49FHGMEC(){
+        String folder = "test/3P49FH.junit/";
+        String[] args = new String[]{"-c", folder + "KStar.cfg", "findGMEC",
+                folder + "System.cfg", folder + "DEE.cfg"};
+
+        ConfSearch.EnergiedConf gmec = checkGMEC(args);
+
+        assertThat(gmec.getEnergy(), isRelatively(-88.341, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {6, 19, 41, 10}));
+    }
+
+    /**
      * Tests DEEPer with RNA ring puckers
      * ran with -Xss10m
      */
