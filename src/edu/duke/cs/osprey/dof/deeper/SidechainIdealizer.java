@@ -176,20 +176,12 @@ public class SidechainIdealizer {
             }
         }
 
-        if (HardCodedResidueInfo.hasAminoAcidBB(res)) {
-			for (String name2 : HardCodedResidueInfo.possibleAABBAtoms) {
-				if (name2.equalsIgnoreCase(atomName)) {
-					return false;
-				}
-			}
-		} else if (HardCodedResidueInfo.hasNucleicAcidBB(res)) {
-
-			for (String name2 : HardCodedResidueInfo.possibleNABBAtoms) {
-				if (name2.equalsIgnoreCase(atomName)) {
-					return false;
-				}
-			}
-		}
+        String[] possibleBBAtoms = HardCodedResidueInfo.getPossibleBBAtoms(res);
+        for (String name : possibleBBAtoms) {
+            if (name.equalsIgnoreCase(atomName)) {
+                return false;
+            }
+        }
         
         return true;
     }

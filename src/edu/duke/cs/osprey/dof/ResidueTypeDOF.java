@@ -13,6 +13,7 @@ import edu.duke.cs.osprey.structure.Molecule;
 import edu.duke.cs.osprey.structure.Residue;
 import edu.duke.cs.osprey.tools.RigidBodyMotion;
 import java.util.ArrayList;
+import java.util.Set;
 
 /**
  *
@@ -129,10 +130,12 @@ public class ResidueTypeDOF extends DegreeOfFreedom {
         
         // rotation from template to res
         RigidBodyMotion xform = new RigidBodyMotion(templateBBCoords, resBBCoords);
+        Set<String> possibleBBAtomsLookup = HardCodedResidueInfo.getPossibleBBAtomsLookup(res);
         for (Atom atom : res.atoms) {
             
             // skip backbone atoms
-            if (HardCodedResidueInfo.possibleAABBAtomsLookup.contains(atom.name)) {
+            // DZ 2017: skip RNA backbone atoms too.
+            if (possibleBBAtomsLookup.contains(atom.name)) {
                 continue;
             }
             

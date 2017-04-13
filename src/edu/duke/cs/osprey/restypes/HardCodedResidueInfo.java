@@ -30,18 +30,19 @@ public class HardCodedResidueInfo {
 	 * here into some kind of template files in the future
 	 */
 
-	public static String[] possibleAABBAtoms = new String[] { "N", "H", "CA", "C", "O", "OXT", "H1", "H2", "H3" };
+	private static String[] possibleAABBAtoms = new String[] { "N", "H", "CA", "C", "O", "OXT", "H1", "H2", "H3" };
 	// BB atoms, which should stay still in mutations and should be moved in
 	// perturbations.
 	// We'll move HA with the sidechain, so it's not included here.
 
-	public static Set<String> possibleAABBAtomsLookup; // DZ: for O(1) lookup
-	public static Set<String> possibleNABBAtomsLookup; // DZ: for O(1) lookup
-
+	// DZ: This is public only because RingPucker needs it.  It really should not be
 	public static String[] possibleNABBAtoms = new String[] { "P", "OP1", "OP2", "O5'", "C5'", "H5'", "H5''", "C4'",
 			"H4'", "C3'", "H3'", "O3'", "HO3'", "O2'", "HO2'", "C2'", "H2'", "C1'", "O4'", "HO5'" };
 	// Nucleic Acid BB atoms. Note that O2' is unique to RNA
 	// H1' is moved with the "sidechain" in the same way as HA in amino acids.
+
+	private static Set<String> possibleAABBAtomsLookup; // DZ: for O(1) lookup
+	private static Set<String> possibleNABBAtomsLookup; // DZ: for O(1) lookup
 
 	public static LinkedHashMap<String, String> three2one = null;
 	public static LinkedHashMap<String, String> one2three = null;// reverse
@@ -96,7 +97,37 @@ public class HardCodedResidueInfo {
 		return res;
 	}
 
-	// DZ: replacing
+	// DZ: return null if we don't recognize the backbone
+
+	public static String[] getPossibleBBAtoms(Residue res) {
+		String[] result = hasAminoAcidBB(res)
+				? possibleAABBAtoms
+				: hasNucleicAcidBB(res)
+					? possibleNABBAtoms
+					: null;
+		if (result == null) {
+			throw new UnsupportedOperationException(
+					"ERROR: OSPREY does not know what the backbone is for " + res.fullName
+			);
+		}
+		return result;
+	}
+
+	public static Set<String> getPossibleBBAtomsLookup(Residue res) {
+		Set<String> result = hasAminoAcidBB(res)
+				? possibleAABBAtomsLookup
+				: hasNucleicAcidBB(res)
+					? possibleNABBAtomsLookup
+					: null;
+		if (result == null) {
+			throw new UnsupportedOperationException(
+					"ERROR: OSPREY does not know what the backbone is for " + res.fullName
+			);
+		}
+		return result;
+	}
+
+	// DZ: replacing this to allow for RNA design
 	public static boolean isMutable(Residue res) {
 	    return (hasAminoAcidBB(res) || hasNucleicAcidBB(res))
                 && !res.fullName.startsWith("FOL");

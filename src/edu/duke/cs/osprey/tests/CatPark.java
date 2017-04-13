@@ -142,8 +142,8 @@ public class CatPark {
             Residue res2 = m2.residues.get(resNum);
             double resMSD = 0;
             int resAtCount = 0;
-            
-            for(String name : HardCodedResidueInfo.possibleAABBAtoms){
+            String[] possibleBBAtoms = HardCodedResidueInfo.getPossibleBBAtoms(res1);
+            for(String name : possibleBBAtoms){
                 double atCoords1[] = res1.getCoordsByAtomName(name);
                 if(atCoords1 != null){
                     double atCoords2[] = res2.getCoordsByAtomName(name);

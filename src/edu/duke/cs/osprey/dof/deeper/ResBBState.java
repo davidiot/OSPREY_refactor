@@ -41,35 +41,25 @@ public class ResBBState implements Serializable {
 		// First, scan for NA backbone atoms, because some AA backbone atoms
 		// have the same name as NA base atoms and this could lead to problems.
 		// Thus, we want to check for NA residues first.
-		type = BBType.AMINO_ACID;
-		for (Atom at : res.atoms) {
-			for (String BBAtomName : HardCodedResidueInfo.possibleNABBAtoms) {
-				if (at.name.equalsIgnoreCase(BBAtomName)) {
-					type = BBType.NUCLEIC_ACID;
-					break;
-				}
-			}
-			if (type == BBType.NUCLEIC_ACID) {
-				break;
-			}
+		type = HardCodedResidueInfo.hasAminoAcidBB(res)
+				? BBType.AMINO_ACID
+				: HardCodedResidueInfo.hasNucleicAcidBB(res)
+					? BBType.NUCLEIC_ACID
+					: null;
+
+		if (type == null) {
+			throw new UnsupportedOperationException(
+					"ERROR: Tried to record the state of " + res.fullName + " but backbone is unrecognized."
+			);
 		}
 
+		String[] possibleBBAtoms = HardCodedResidueInfo.getPossibleBBAtoms(res);
 		for (Atom at : res.atoms) {
 			boolean isBBAtom = false;
-
-			if (type == BBType.AMINO_ACID) {
-				for (String BBAtomName : HardCodedResidueInfo.possibleAABBAtoms) {
-					if (at.name.equalsIgnoreCase(BBAtomName)) {
-						isBBAtom = true;
-						break;
-					}
-				}
-			} else if (type == BBType.NUCLEIC_ACID) {
-				for (String BBAtomName : HardCodedResidueInfo.possibleNABBAtoms) {
-					if (at.name.equalsIgnoreCase(BBAtomName)) {
-						isBBAtom = true;
-						break;
-					}
+			for (String BBAtomName : possibleBBAtoms) {
+				if (at.name.equalsIgnoreCase(BBAtomName)) {
+					isBBAtom = true;
+					break;
 				}
 			}
 

@@ -90,7 +90,8 @@ public class TestRNAStructure extends TestBase {
 		for (int resNum = 0; resNum < m.residues.size(); resNum++) {
 			Residue res1 = m.residues.get(resNum);
             Residue res2 = m2.getResByPDBResNumber(res1.getPDBResNumber());
-            for (String bbAtom : HardCodedResidueInfo.possibleNABBAtoms) {
+            String[] possibleBBAtoms = HardCodedResidueInfo.getPossibleBBAtoms(res1);
+            for (String bbAtom : possibleBBAtoms) {
                 double[] c1 = res1.getCoordsByAtomName(bbAtom);
                 double[] c2 = res2.getCoordsByAtomName(bbAtom);
                 if (c1 != null && c2 != null) {
