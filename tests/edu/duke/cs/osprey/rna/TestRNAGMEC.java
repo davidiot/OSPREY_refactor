@@ -65,8 +65,8 @@ public class TestRNAGMEC extends TestBase{
 
         ConfSearch.EnergiedConf gmec = checkGMEC(args);
 
-        assertThat(gmec.getEnergy(), isRelatively(-88.341, 1e-3));
-        assertThat(gmec.getAssignments(), is(new int[] {6, 19, 41, 10}));
+        assertThat(gmec.getEnergy(), isRelatively( -91.516, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {0, 20, 42, 0}));
     }
 
     /**
@@ -81,8 +81,8 @@ public class TestRNAGMEC extends TestBase{
 
         ConfSearch.EnergiedConf gmec = checkGMEC(args);
 
-        assertThat(gmec.getEnergy(), isRelatively(-62.173, 1e-3));
-        assertThat(gmec.getAssignments(), is(new int[] {4, 6, 15}));
+        assertThat(gmec.getEnergy(), isRelatively(-64.117, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {4, 41, 30}));
     }
 
     /**
@@ -97,8 +97,8 @@ public class TestRNAGMEC extends TestBase{
 
         ConfSearch.EnergiedConf gmec = checkGMEC(args);
 
-        assertThat(gmec.getEnergy(), isRelatively(-89.596, 1e-3));
-        assertThat(gmec.getAssignments(), is(new int[] {31, 19, 41, 12}));
+        assertThat(gmec.getEnergy(), isRelatively(-91.002, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {0, 14, 14, 0}));
     }
 
     private ConfSearch.EnergiedConf checkGMEC(String[] args) {
