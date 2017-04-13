@@ -30,14 +30,13 @@ public class TestRNAGMEC extends TestBase{
 
         ConfSearch.EnergiedConf gmec = checkGMEC(args);
 
-        assertThat(gmec.getEnergy(), isRelatively(-58.535, 1e-3));
-        assertThat(gmec.getAssignments(), is(new int[] {0, 0, 21, 0}));
+        assertThat(gmec.getEnergy(), isRelatively(-48.751, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {0, 0, 0 , 38}));
     }
 
     /**
      * Find a GMEC when both RNA and protein are involved
      * Note that the stack size might need to be increased.
-     * I ran it with -Xss3000k -dzhou
      */
     @Test
     public void test1fxlFHGMEC() {
@@ -49,9 +48,8 @@ public class TestRNAGMEC extends TestBase{
 
         ConfSearch.EnergiedConf gmec = checkGMEC(args);
 
-        assertThat(gmec.getEnergy(), isRelatively(-120.530, 1e-3));
-        // DZ: it looks like several assignments are pretty close in energy.
-        // assertThat(gmec.getAssignments(), is(new int[] {9, 32, 0, 13, 13}));
+        assertThat(gmec.getEnergy(), isRelatively(-61.737, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {33, 1, 14}));
     }
 
     /**
