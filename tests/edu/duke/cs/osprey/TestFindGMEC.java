@@ -48,6 +48,32 @@ public class TestFindGMEC extends TestBase {
         0 CONF: 5 7 12 5 0 7 4 RESTYPES: Ile Ser Met Glu Ala Gln Leu ROTS: 5 7 12 5 -1 7 4 Lower bound/enumeration energy: -70.62208670920121 Energy: -70.6172123578607 Best so far: -70.61721235798836 EPIC energy: -70.62518856374005
         */
     }
+
+    @Test
+    public void test1CC8DEEPer(){
+        //Here's a 7-residue test using EPIC and LUTE with continuous sidechain flexibility
+        String[] args = new String[] {"-c","test/1CC8.deeper.junit/KStar.cfg","findGMEC",
+                "test/1CC8.deeper.junit/System.cfg","test/1CC8.deeper.junit/DEE.cfg"};
+
+        ConfigFileParser cfp = new ConfigFileParser(args);//args 1, 3+ are configuration files
+        cfp.loadData();
+
+        GMECFinder gf = new GMECFinder();
+        gf.init(cfp);
+        EnergiedConf gmec = gf.calcGMEC().get(0);
+
+        //GMECEnergy should be about -70.617
+        //Numerical/fitting error could alter it within ~0.1 kcal/mol.
+        //If you are running this test after improving the minimizer maybe you'll
+        //find something better, but the energy for this conf (and thus the GMEC)
+        //should be at least this good
+        assertThat(gmec.getEnergy(), isRelatively(-70.617, 1e-3));
+        assertThat(gmec.getAssignments(), is(new int[] {5, 7, 12, 5, 0, 7, 4}));
+        /*
+        Example GMEC line in confs.txt:
+        0 CONF: 5 7 12 5 0 7 4 RESTYPES: Ile Ser Met Glu Ala Gln Leu ROTS: 5 7 12 5 -1 7 4 Lower bound/enumeration energy: -70.62208670920121 Energy: -70.6172123578607 Best so far: -70.61721235798836 EPIC energy: -70.62518856374005
+        */
+    }
     
     @Test
     public void testDEEPer(){
