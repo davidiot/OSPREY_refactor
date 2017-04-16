@@ -3,3 +3,6 @@ lib/nblibraries.properties
 nbproject/*
 build.xml
 nbbuild.xml
+/dist/
+bin
+

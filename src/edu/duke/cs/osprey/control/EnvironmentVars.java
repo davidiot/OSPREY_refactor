@@ -5,10 +5,7 @@
 package edu.duke.cs.osprey.control;
 
 import edu.duke.cs.osprey.energy.EnergyFunctionGenerator;
-import edu.duke.cs.osprey.energy.forcefield.ForcefieldParams;
 import edu.duke.cs.osprey.restypes.GenericResidueTemplateLibrary;
-
-import java.math.BigInteger;
 
 
 public class EnvironmentVars {
@@ -21,6 +18,8 @@ public class EnvironmentVars {
         public static boolean assignTemplatesToStruct = true;//Assign templates when we read in a template.
         //We'll keep this true unless explicitly set otherwise since most calculations require templates
         public static boolean deleteNonTemplateResidues = true;//Delete residues for which we don't have a template
+        
+        public static boolean alwaysIdealizeSidechainsAfterMutation;
         
         public static boolean useMPI = false;//distribute things like energy matrix calculations, K* calculation for sequences using MPI
         
