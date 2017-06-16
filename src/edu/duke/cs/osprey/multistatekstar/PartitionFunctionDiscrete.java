@@ -4,7 +4,6 @@ import edu.duke.cs.osprey.control.ConfEnergyCalculator.Async;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-
 import edu.duke.cs.osprey.confspace.ConfSearch.ScoredConf;
 import edu.duke.cs.osprey.control.ConfSearchFactory;
 import edu.duke.cs.osprey.ematrix.EnergyMatrix;
@@ -17,6 +16,8 @@ import edu.duke.cs.osprey.pruning.PruningMatrix;
  */
 public class PartitionFunctionDiscrete extends PartitionFunctionMinimized {
 
+	public static boolean DEBUG = false;
+
 	public PartitionFunctionDiscrete(
 			EnergyMatrix emat, 
 			PruningMatrix pmat, 
@@ -26,11 +27,11 @@ public class PartitionFunctionDiscrete extends PartitionFunctionMinimized {
 			) {
 		super(emat, pmat, invmat, confSearchFactory, ecalc);
 	}
-
+	
 	@Override
 	public void init(double targetEpsilon) {
 		super.init(targetEpsilon);
-		energyConfs = null;
+		scoreConfs = null;
 	}
 
 	@Override
@@ -42,7 +43,10 @@ public class PartitionFunctionDiscrete extends PartitionFunctionMinimized {
 
 		ScoredConf conf;
 		BigDecimal scoreWeight;
+		
 		int stopAtConf = numConfsEvaluated + maxNumConfs;
+
+		double lastScore = Double.NEGATIVE_INFINITY;
 
 		while (true) {
 
@@ -51,23 +55,31 @@ public class PartitionFunctionDiscrete extends PartitionFunctionMinimized {
 				break;
 			}
 
-			if ((conf = scoreConfs.next()) == null) {
+			if ((conf = energyConfs.next()) == null) {
 				if(status != Status.Estimated) status = Status.NotEnoughConformations;
 				break;
 			}
 
 			numConfsEvaluated++;
 
+			if(DEBUG) {
+				if(conf.getScore() < lastScore)
+					throw new RuntimeException("ERROR: scores must be non-decreasing: score: "+conf.getScore()+ ", lastScore: "+lastScore);
+				lastScore = conf.getScore();
+			}
+
 			scoreWeight = boltzmann.calc(conf.getScore());
+			numConfsToScore = numConfsToScore.subtract(BigInteger.ONE);
 
 			if (scoreWeight.compareTo(BigDecimal.ZERO) == 0) {
-				if(status != Status.Estimated) status = Status.NotEnoughFiniteEnergies;
+				values.qprime = updateQprime(scoreWeight);
+				double effectiveEpsilon = getEffectiveEpsilon();	
+				if (!Double.isNaN(effectiveEpsilon) && effectiveEpsilon <= targetEpsilon) status = Status.Estimated;
+				else if(status != Status.Estimated) status = Status.NotEnoughFiniteEnergies;
 				break;
 			}
 
 			if(status == Status.Estimating) {
-
-				numConfsToScore = numConfsToScore.subtract(BigInteger.ONE);
 
 				values.qstar = values.qstar.add(scoreWeight);
 				values.qprime = updateQprime(scoreWeight);
@@ -83,9 +95,13 @@ public class PartitionFunctionDiscrete extends PartitionFunctionMinimized {
 				}
 
 				// update status if needed
-				if (getEffectiveEpsilon() <= targetEpsilon) {
+				double effectiveEpsilon = getEffectiveEpsilon();
+				if(Double.isNaN(effectiveEpsilon)) {
+					status = Status.NotEnoughFiniteEnergies;
+				}
+				else if (effectiveEpsilon <= targetEpsilon) {
 					status = Status.Estimated;
-					phase1Output(conf);//just to let the user know we reached epsilon
+					if (isReportingProgress) phase1Output(conf);//just to let the user know we reached epsilon
 				}
 			}
 		}
@@ -107,7 +123,7 @@ public class PartitionFunctionDiscrete extends PartitionFunctionMinimized {
 				break;
 			}
 
-			if ((conf = scoreConfs.next()) == null) {
+			if ((conf = energyConfs.next()) == null) {
 				if(status != Status.Estimated) status = Status.NotEnoughConformations;
 				break;
 			}
@@ -115,9 +131,13 @@ public class PartitionFunctionDiscrete extends PartitionFunctionMinimized {
 			numConfsEvaluated++;
 
 			scoreWeight = boltzmann.calc(conf.getScore());
+			numConfsToScore = numConfsToScore.subtract(BigInteger.ONE);
 
 			if (scoreWeight.compareTo(BigDecimal.ZERO) == 0) {
-				if(status != Status.Estimated) status = Status.NotEnoughFiniteEnergies;
+				values.qprime = updateQprime(scoreWeight);
+				double effectiveEpsilon = getEffectiveEpsilon();	
+				if (!Double.isNaN(effectiveEpsilon) && effectiveEpsilon <= targetEpsilon) status = Status.Estimated;
+				else if(status != Status.Estimated) status = Status.NotEnoughFiniteEnergies;
 				break;
 			}
 
@@ -141,9 +161,13 @@ public class PartitionFunctionDiscrete extends PartitionFunctionMinimized {
 				}
 
 				// update status if needed
-				if (getEffectiveEpsilon() <= targetEpsilon) {
+				double effectiveEpsilon = getEffectiveEpsilon();
+				if(Double.isNaN(effectiveEpsilon)) {
+					status = Status.NotEnoughFiniteEnergies;
+				}
+				else if (effectiveEpsilon <= targetEpsilon) {
 					status = Status.Estimated;
-					phase2Output(conf, pdiff);
+					if (isReportingProgress) phase2Output(conf, pdiff);
 				}
 			}
 		}
@@ -152,7 +176,7 @@ public class PartitionFunctionDiscrete extends PartitionFunctionMinimized {
 	protected BigDecimal updateQprime(BigDecimal val) {
 		return val.multiply(new BigDecimal(numConfsToScore.toString()));
 	}
-	
+
 	protected double getEffectiveEpsilon() {
 		return values.getEffectiveEpsilon();
 	}

@@ -34,8 +34,11 @@ public class ConfigFileParser {
     
     public ConfigFileParser(String[] args){
         //parse all config files into params
-        
-        //check format of args
+    	ConfigFileParserHelper(args);
+    }
+    
+    private void ConfigFileParserHelper(String[] args) {
+    	//check format of args
         if(!args[0].equalsIgnoreCase("-c"))
             throw new RuntimeException("ERROR: bad arguments (should start with -c)");
         
@@ -49,21 +52,8 @@ public class ConfigFileParser {
     }
     
     public ConfigFileParser(String[] args, boolean isVerbose){
-        //AAO: as much as i hate to duplicate code, verbosity is a problem with params
-    	//parse all config files into params
         params.setVerbosity(isVerbose);
-        
-        //check format of args
-        if(!args[0].equalsIgnoreCase("-c"))
-            throw new RuntimeException("ERROR: bad arguments (should start with -c)");
-        
-        params.addParamsFromFile(args[1]);//KStar.cfg file
-        EnvironmentVars.setDataDir(params.getValue("DataDir"));
-        
-        for(int argNum=3; argNum<args.length; argNum++)//System.cfg, etc.
-            params.addParamsFromFile(args[argNum]);
-        
-        params.addDefaultParams();//We'll look for this in DataDir
+        ConfigFileParserHelper(args);
     }
     
     public ConfigFileParser() {
@@ -73,7 +63,6 @@ public class ConfigFileParser {
         EnvironmentVars.setDataDir("dataFiles");
     	params.addDefaultParams();
     }
-    
     
     protected DEEPerSettings setupDEEPer(){
         //Set up the DEEPerSettings object, including the PertSet (describes the perturbations)

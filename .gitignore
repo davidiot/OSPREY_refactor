@@ -6,6 +6,8 @@ nbbuild.xml
 /dist/
 bin
 
+.DS_Store
+
 # DZ: ignore IntelliJ stuff
 .idea/
 OSPREY_refactor.iml

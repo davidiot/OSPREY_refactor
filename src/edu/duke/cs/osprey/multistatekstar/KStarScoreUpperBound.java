@@ -1,11 +1,16 @@
 package edu.duke.cs.osprey.multistatekstar;
 
 import java.math.BigDecimal;
+import edu.duke.cs.osprey.kstar.pfunc.PartitionFunction;
 
-public class KStarScoreUpperBound extends KStarScoreLowerBound {
+public class KStarScoreUpperBound extends KStarScoreDiscrete {
 
 	public KStarScoreUpperBound(MSKStarSettings settings) {
 		super(settings);
+	}
+
+	public KStarScoreUpperBound(MSKStarSettings settings, PartitionFunction[] pfs) {
+		super(settings, pfs);
 	}
 
 	@Override
@@ -26,19 +31,46 @@ public class KStarScoreUpperBound extends KStarScoreLowerBound {
 		}
 	}
 
+	@Override
+	public void compute(int maxNumConfs) {
+		super.compute(maxNumConfs);
+		/*
+		//complex is null only for root node
+		PartitionFunction complex = partitionFunctions[numStates-1];
+
+		//here, the numerator is an upper bound, which only decreases
+		//as we descend the tree. therefore, if numerator is 0, then we
+		//can safely prune this node.
+		if(complex != null && complex.getValues().qstar.compareTo(BigDecimal.ZERO)==0)
+			constrSatisfied = false;
+		 */
+	}
+
 	public BigDecimal getScore() {
+		PartitionFunction complex = partitionFunctions[numStates-1];
+		if(complex == null) return KStarScore.MAX_VALUE;
+
 		BigDecimal score = super.getScore();
-		if(score.compareTo(BigDecimal.ZERO)>0) return score;
+
+		//denom > 0
+		if(getDenom().compareTo(BigDecimal.ZERO)>0) {
+			return score;
+		}
+
+		//denom = 0
 		else {
-			if(getDenom().compareTo(BigDecimal.ZERO)>0) return score;
-			else {
-				if(initialized[numStates-1]) return score; //upper bound partition function is also 0
-				else return PartitionFunctionMinimized.MAX_VALUE;
-			}
+			//denom = 0. here, denom consists of lower bounds, which increase
+			//as we descend the tree. so descendants might have good k* scores,
+			//so we want to expand this node.
+			return KStarScore.MAX_VALUE;
 		}
 	}
-	
+
 	public BigDecimal getUpperBoundScore() {
+		return getScore();
+	}
+
+	public BigDecimal getLowerBoundScore() {
 		return getScore();
 	}
 

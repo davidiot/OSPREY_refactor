@@ -1,5 +1,7 @@
 package edu.duke.cs.osprey.multistatekstar;
 
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryUsage;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -9,7 +11,9 @@ import edu.duke.cs.osprey.confspace.SearchProblem;
 import edu.duke.cs.osprey.control.ConfEnergyCalculator;
 import edu.duke.cs.osprey.control.ParamSet;
 import edu.duke.cs.osprey.multistatekstar.KStarScore.KStarScoreType;
+import edu.duke.cs.osprey.parallelism.ThreadParallelism;
 import edu.duke.cs.osprey.tools.ObjectIO;
+import edu.duke.cs.osprey.tools.Stopwatch;
 
 /**
  * 
@@ -18,45 +22,56 @@ import edu.duke.cs.osprey.tools.ObjectIO;
  *
  */
 public class MSKStarTree {
+	
+	public static boolean DEBUG = false;
 
-	int numTreeLevels;//number of residues with sequence
-	//changes+1 level if we are doing continuous minimization
+	protected LMB objFcn;//we are minimizing objFcn
+	protected LMB[] msConstr;
+	protected LMB[][] sConstr;
 
-	LMB objFcn;//we are minimizing objFcn
-	LMB[] msConstr;
-	LMB[][] sConstr;
-
-	ArrayList<ArrayList<ArrayList<Integer>>> mutable2StateResNums;
+	protected ArrayList<ArrayList<ArrayList<Integer>>> mutable2StateResNums;
 	//mutable2StateResNum.get(state) maps levels in this tree to flexible positions for state
 
-	ArrayList<ArrayList<ArrayList<ArrayList<String>>>> AATypeOptions;
+	protected ArrayList<ArrayList<ArrayList<ArrayList<String>>>> AATypeOptions;
 	// MultiStateKStarTreeNode.assignments Assigns each level an index in 
 	// AATypeOptions.get(level), and thus an AA type
 	//If -1, then no assignment yet
 
-	int numMaxMut;//number of mutations allowed away from wtSeq (-1 means no cap)
-	ArrayList<String[]> wtSeqs;//bound state wild type sequences for each state
+	protected int numTreeLevels;//maximum number of mutable/flexible residues.
+	//+1 if minimization is allowed
 
-	int numStates;//how many states there are
+	protected int numMaxMut;//number of mutations allowed away from wtSeq (-1 means no cap)
+	protected ArrayList<String[]> wtSeqs;//bound state wild type sequences for each state
+
+	protected int numStates;//how many states there are
 	//states have the same mutable residues & options for AA residues,
 	//but not necessarily for non AA residues
 
-	SearchProblem searchCont[][];//SearchProblems describing them; each state has >= 3 SearchProblems
-	SearchProblem searchDisc[][];
+	protected SearchProblem searchCont[][];//SearchProblems describing them; each state has >= 3 SearchProblems
+	protected SearchProblem searchDisc[][];
 
-	ConfEnergyCalculator.Async[][] ecalcsCont;//energy calculators for continuous emats
-	ConfEnergyCalculator.Async[][] ecalcsDisc;//energy calculators for discrete emats
+	protected ConfEnergyCalculator.Async[][] ecalcsCont;//energy calculators for continuous emats
+	protected ConfEnergyCalculator.Async[][] ecalcsDisc;//energy calculators for discrete emats
 
-	ParamSet msParams;//multistate spec params
-	MSConfigFileParser[] cfps;//config file parsers for each state
+	protected ParamSet msParams;//multistate spec params
+	protected MSConfigFileParser[] cfps;//config file parsers for each state
 
-	PriorityQueue<MSKStarNode> pq;
+	protected PriorityQueue<MSKStarNode> pq;
 
-	int numSeqsWanted;
-	int numSeqsReturned;
+	protected int numSeqsWanted;
+	protected int numSeqsReturned;
+	protected int numCompleted;
 
-	int numExpanded;
-	int numPruned;
+	protected int numExpanded;
+	protected int numExtracted;
+	protected int numSelfExpanded;
+	protected int numFullyDefined;
+	protected int numPruned;
+	
+	protected BigDecimal prevScore;
+	protected String prevSeq;
+
+	protected Stopwatch stopwatch;
 
 	public MSKStarTree(
 			int numTreeLevels,
@@ -77,7 +92,6 @@ public class MSKStarTree {
 			MSConfigFileParser[] cfps
 			) {
 
-		this.numTreeLevels = numTreeLevels;
 		this.objFcn = objFcn;
 		this.msConstr = msConstr;
 		this.sConstr = sConstr;
@@ -85,6 +99,7 @@ public class MSKStarTree {
 		this.numMaxMut = numMaxMut;
 		this.numSeqsWanted = numSeqsWanted;
 		this.wtSeqs = wtSeqs;
+		this.numTreeLevels = numTreeLevels;
 		this.numStates = numStates;
 		this.searchCont = searchCont;
 		this.searchDisc = searchDisc;
@@ -95,10 +110,19 @@ public class MSKStarTree {
 		this.cfps = cfps;
 		this.msParams = msParams;
 
-		numExpanded = 0;
-		numPruned = 0;
-		numSeqsReturned = 0;
-		pq = null;
+		this.numExtracted = 0;
+		this.numExpanded = 0;
+		this.numSelfExpanded = 0;
+		this.numFullyDefined = 0;
+		this.numPruned = 0;
+		this.numSeqsReturned = 0;
+		this.numCompleted = 0;
+		this.pq = null;
+
+		this.prevScore = null;//only the root is allowed a null score 
+		this.prevSeq = "";
+		
+		this.stopwatch = new Stopwatch().start();
 	}
 
 	private void initQueue(MSKStarNode node) {
@@ -113,41 +137,66 @@ public class MSKStarTree {
 	}
 
 	private boolean canPrune(MSKStarNode curNode) {
-		//first check whether state specific constraints are satisfied
-		if(!curNode.constrSatisfied()) return true;
-		//now check global constraints
-		for(LMB lmb : msConstr) {
-			if(lmb.eval(curNode.getStateKStarScores(lmb)).compareTo(BigDecimal.ZERO) > 0)
-				return true;
-		}
+		//after some deliberation, i think this is correct. getkstarscores always
+		//correctly maps to the lower bound, since the formulation of LMBs always
+		//transforms the expression to something bounded above by 0, which is the desired behavior
+		//check all global constraints
+		for(LMB lmb : msConstr)
+			if(lmb.eval(curNode.getStateKStarScores(lmb)).compareTo(BigDecimal.ZERO) >= 0)
+				return true;		
 		return false;
 	}
 
 	private ArrayList<MSKStarNode> getChildren(MSKStarNode curNode) {
 		ArrayList<MSKStarNode> ans = new ArrayList<>();
-		
+
 		//pick next position to expand
-		if(!curNode.isFullyAssigned())
-			ans.addAll(curNode.split(msParams));
-		
-		else {
-			
+		if(!curNode.isFullyAssigned()) {
+			ans.addAll(curNode.splitUnassigned());
+			for(MSKStarNode child : ans) {		
+				if(child.isFinal()) numFullyDefined++;
+			}
 		}
-		
-		//create search problems and score children
-		//sequential...short circuit if one state fails
-		//parallel...might do more work than necessary
+
+		else {
+			ans.addAll(curNode.splitFullyAssigned());
+			for(MSKStarNode child : ans) {
+				if(!curNode.isFinal() && child.isFinal()) numFullyDefined++;
+			}
+		}
+
 		ans.trimToSize();
 		return ans;
 	}
 
-	private MSKStarNode getRootNode() {
-		
+	private void initNodeStaticVars(MSKStarNode root) {
 		//initialize MSKStarNode
 		MSKStarNode.OBJ_FUNC = this.objFcn;
 		MSKStarNode.WT_SEQS = this.wtSeqs;
 		MSKStarNode.NUM_MAX_MUT = this.numMaxMut;
+		MSKStarNode.MS_PARAMS = this.msParams;
+		MSKStarNode.SEARCH_CONT = this.searchCont;
+		MSKStarNode.SEARCH_DISC = this.searchDisc;
+		MSKStarNode.ECALCS_CONT = this.ecalcsCont;
+		MSKStarNode.ECALCS_DISC = this.ecalcsDisc;
+		MSKStarNode.RESIDUE_ORDER = ResidueOrderFactory.getResidueOrder(this.msParams, root.getStateKStarSearch(this.objFcn));
 		
+		int astarThreads = this.msParams.getInt("ASTARTHREADS");
+		ThreadParallelism.setNumThreads(astarThreads);
+		MSKStarNode.PARALLEL_EXPANSION = astarThreads > 1 ? true : false;
+		//MSKStarNode.PARALLELISM_MULTIPLIER = astarThreads;
+		
+		MSKStarTree.DEBUG = false;
+		MSSearchProblem.DEBUG = false;
+		ResidueOrderDynamicScoreMinDom.DEBUG = false;
+		ResidueOrderDynamicScore.DEBUG = false;
+		
+		MSKStarNode.DEBUG = true;
+		PartitionFunctionDiscrete.DEBUG = true;
+	}
+
+	private MSKStarNode getRootNode() {
+
 		KStarScore[] kssLB = new KStarScore[numStates];
 		KStarScore[] kssUB = new KStarScore[numStates];
 		KStarScoreType[] types = null;
@@ -159,23 +208,28 @@ public class MSKStarTree {
 			else
 				types = new KStarScoreType[]{KStarScoreType.DiscreteLowerBound, KStarScoreType.DiscreteUpperBound};
 
-			KStarScore[] scores = getRootKStarScores(state, types);
+			KStarScore[] scores = getRootKStarBounds(state, types);
 			kssLB[state] = scores[0];
 			kssUB[state] = scores[1];
 		}
 
 		MSKStarNode ans = new MSKStarNode(kssLB, kssUB);
-		ans.setScore(objFcn);//set score per the objective function
+		//ans.setScore(objFcn);//set score per the objective function
+		BigDecimal rootScore = null;
+		ans.setScore(rootScore);
+		
+		initNodeStaticVars(ans);
+		
 		return ans;
 	}
 
-	private KStarScore[] getRootKStarScores(int state, KStarScoreType[] types) {
+	private KStarScore[] getRootKStarBounds(int state, KStarScoreType[] types) {
 		boolean doMinimize = cfps[state].getParams().getBool("DOMINIMIZE");
 		//[0] is lb, [1] is ub
 		KStarScore[] ans = new KStarScore[types.length];
 
 		ParamSet sParams = cfps[state].getParams();
-		int numPartFuncs = sParams.getInt("NUMUBSTATES")+1;
+		int numPartFuncs = sParams.getInt("NUMOFSTRANDS")+1;
 
 		for(int i=0;i<types.length;++i) {
 
@@ -211,12 +265,10 @@ public class MSKStarTree {
 	}
 
 	public String nextSeq() {
-
-		if(pq==null) {
+		if(pq==null)
 			initQueue(getRootNode());
-		}
 
-		MSKStarNode curNode;
+		MSKStarNode curNode = null;
 		while(true) {
 			curNode = pq.poll();
 
@@ -224,22 +276,60 @@ public class MSKStarTree {
 				System.out.println("Multi-State K* tree empty...returning empty signal");
 				return null;
 			}
+			
+			numExtracted++;
+			
+			if(prevScore != null && prevScore.compareTo(curNode.getScore())>0) {				
+				throw new RuntimeException(String.format("ERROR: A* scores must "
+						+ "be non-decreasing.\nlastScore: %12e, lastSeq: %s\n"
+						+ "curScore: %12e, curSeq: %s\n"
+						+ "last-cur: %12e", 
+						prevScore, prevSeq, 
+						curNode.getScore(), curNode.getSequence(0),
+						prevScore.subtract(curNode.getScore())));
+			}
+			
+			prevScore = curNode.getScore();
+			prevSeq = curNode.getSequence(0);
 
-			else if(canPrune(curNode)) {
+			//if(numExpanded % 8==0) 
+			reportProgress(curNode);
+
+			if(canPrune(curNode)) {
 				numPruned++;
 				continue;
 			}
 
 			else {
-				if(curNode.isLeafNode()) return curNode.toString();
+				if(curNode.isLeafNode()) {
+					numSeqsReturned++;
+					reportProgress(curNode);
+					return curNode.toString();
+				}
 
 				//expand
 				ArrayList<MSKStarNode> children = getChildren(curNode);
+				//count number pruned by local constraints
+				numPruned += curNode.getNumPruned();
+				//expansion is either a refinement of the same node or creation
+				//of completely new nodes
+				if(children.size()==1 && curNode.equals(children.get(0))) numSelfExpanded++;
 				numExpanded++;
+
+				for(MSKStarNode child : children) {
+					if(child.isLeafNode()) numCompleted++;
+				}
 
 				pq.addAll(children);
 			}
 		}
+	}
+
+	private void reportProgress(MSKStarNode curNode) {
+		MemoryUsage heapMem = ManagementFactory.getMemoryMXBean().getHeapMemoryUsage();
+		System.out.println(String.format("level: %d/%d, score: %12e, size: %d, extracted: %d, expanded: %d, self-expanded: %d, pruned: %d, defined: %d, completed: %d, returned: %d/%d, time: %6s, heapMem: %.0f%%",
+				curNode.getNumAssignedResidues(), numTreeLevels, curNode.getScore(), pq.size(), numExtracted, numExpanded, numSelfExpanded, numPruned, numFullyDefined, numCompleted,
+				numSeqsReturned, numSeqsWanted, stopwatch.getTime(2), 100f*heapMem.getUsed()/heapMem.getMax()));
 	}
 
 }
